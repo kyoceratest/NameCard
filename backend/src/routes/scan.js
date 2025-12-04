@@ -59,25 +59,25 @@ router.get('/', async (req, res) => {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NameCard Contact</title>
   <style>
-    body { margin:0; padding:1.5rem; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#faf5f0; }
+    body { margin:0; padding:1.5rem; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f7eee7; }
     .page { max-width: 720px; margin: 0 auto; }
-    .brand { font-weight:600; letter-spacing:0.05em; font-size:0.9rem; color:#b66b4d; text-transform:uppercase; margin-bottom:0.5rem; }
-    .card { background:#fff; border-radius:16px; padding:1.5rem 1.75rem; box-shadow:0 10px 25px rgba(0,0,0,0.06); }
-    .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:1rem; }
+    .brand { font-weight:600; letter-spacing:0.12em; font-size:0.8rem; color:#b66b4d; text-transform:uppercase; margin-bottom:0.5rem; }
+    .card { background:#ffffff; border-radius:24px; padding:1.75rem 2rem; box-shadow:0 18px 45px rgba(0,0,0,0.08); }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:1.25rem; }
     .name-block { flex:1; }
-    .name { font-size:1.4rem; font-weight:600; color:#333; margin:0 0 0.25rem 0; }
-    .position { font-size:0.95rem; color:#777; margin:0 0 0.5rem 0; }
+    .name { font-size:1.5rem; font-weight:600; color:#333; margin:0 0 0.25rem 0; }
+    .position { font-size:0.95rem; color:#777; margin:0 0 0.4rem 0; }
     .company { font-size:0.95rem; color:#444; font-weight:500; }
-    .info-row { display:flex; align-items:center; font-size:0.95rem; color:#444; margin:0.2rem 0; }
-    .info-label { min-width:4.5rem; font-weight:500; color:#666; }
+    .info-row { display:flex; align-items:center; font-size:0.95rem; color:#444; margin:0.25rem 0; }
+    .info-label { min-width:4.75rem; font-weight:500; color:#666; }
     .info-value { flex:1; }
-    .actions { margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem; }
-    .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.5rem 1rem; border-radius:999px; font-size:0.9rem; border:1px solid transparent; cursor:pointer; text-decoration:none; }
+    .actions { margin-top:1.4rem; display:flex; flex-wrap:wrap; gap:0.85rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.55rem 1.3rem; border-radius:999px; font-size:0.9rem; border:1px solid transparent; cursor:pointer; text-decoration:none; transition:background 0.15s ease, border-color 0.15s ease, color 0.15s ease; }
     .btn-primary { background:#b66b4d; color:#fff; border-color:#b66b4d; }
     .btn-primary:hover { background:#9b5a40; border-color:#9b5a40; }
-    .btn-ghost { background:#fff; color:#555; border-color:#ddd; }
-    .btn-ghost:hover { border-color:#c5c5c5; }
-    .hint { margin-top:0.75rem; font-size:0.8rem; color:#777; }
+    .btn-ghost { background:#fff; color:#555; border-color:#e2d6cc; }
+    .btn-ghost:hover { border-color:#cbb9aa; }
+    .hint { margin-top:0.8rem; font-size:0.8rem; color:#8a7a6c; }
   </style>
 </head>
 <body>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Client Scanner</title>
+  <link rel="stylesheet" href="../cdcwebsite/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <section class="form-section">
+      <h1>Client Scanner (Beta)</h1>
+      <p class="hint">
+        For now, paste the text content of a scanned QR (vCard) or fill the fields manually.
+        Later this page can be upgraded to use the device camera as a real QR scanner.
+      </p>
+
+      <label>
+        QR / vCard text
+        <textarea id="vcardInput" rows="6" style="width: 100%;"></textarea>
+      </label>
+      <button type="button" id="parseVcardBtn">Parse from text</button>
+
+      <hr style="margin: 1.5rem 0;" />
+
+      <form id="clientForm">
+        <div class="field-row">
+          <label>
+            First name
+            <input type="text" id="clientFirstName" name="firstName" />
+          </label>
+          <label>
+            Last name
+            <input type="text" id="clientLastName" name="lastName" />
+          </label>
+        </div>
+
+        <label>
+          Company
+          <input type="text" id="clientCompany" name="company" />
+        </label>
+
+        <label>
+          Email
+          <input type="email" id="clientEmail" name="email" />
+        </label>
+
+        <label>
+          Mobile
+          <input type="text" id="clientMobile" name="mobile" />
+        </label>
+
+        <label>
+          Source / Note (event, campaign, etc.)
+          <input type="text" id="clientSource" name="source" />
+        </label>
+
+        <button type="submit" id="saveClientBtn">Save client to CRM</button>
+      </form>
+
+      <p id="clientStatus" class="hint" style="margin-top: 1rem;"></p>
+    </section>
+  </main>
+
+  <script src="scanner.js"></script>
+</body>
+</html>

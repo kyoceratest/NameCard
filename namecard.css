@@ -1,0 +1,510 @@
+:root {
+  --bg-main: #f1e3d4;
+  --bg-neutral: #f7efe5;
+  --text-main: #221815;
+  --accent: #b7695c;
+  --accent-soft: #f0c7b8;
+  --border-soft: #d2b8a6;
+  --surface: #f9f3ec;
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.06);
+}
+
+body {
+  background: var(--bg-main);
+  color: var(--text-main);
+  font-family: 'Montserrat', sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+main h1 {
+  margin: 0 0 3rem;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Header styles */
+.site-header {
+  background: rgba(241, 227, 212, 0.96);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-soft);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 70px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.brand-logo {
+  height: 32px;
+  width: auto;
+}
+
+.brand-wordmark {
+  height: 20px;
+  width: auto;
+}
+
+/* Navigation */
+.main-nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link {
+  color: var(--text-main);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  padding: 0.5rem 0;
+}
+
+.nav-link:hover {
+  color: var(--accent);
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* Language switcher */
+.lang-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 1.5rem;
+}
+
+.lang-button {
+  background: transparent;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--text-main);
+}
+
+.lang-button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* Main content */
+main {
+  margin-top: 90px;
+  padding-top: 5rem;     /* extra gap below header */
+  min-height: calc(100vh - 200px);
+}
+
+/* Footer - small bottom breathing room below CDC footer */
+.site-footer {
+  padding-bottom: 3rem;
+}
+/* Form styles */
+.form-section {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+  margin: 6rem 0 2rem;   /* larger space above the card body so border clears header */
+}
+
+.field-row {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.field-row > * {
+  flex: 1;
+}
+
+label {
+  display: block;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="email"],
+textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border-soft);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 1rem;
+  background: white;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button[type="submit"] {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+button[type="submit"]:hover {
+  background: #9d5a4f;
+}
+
+.autosave-status {
+  display: inline-block;
+  margin-left: 1rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  vertical-align: middle;
+}
+
+/* Output layout */
+.output-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  align-items: start;
+  margin: 2.5rem 0 3rem;
+}
+
+/* Preview card */
+.preview-card {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.card-column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.export-link-row {
+  margin-top: 0.75rem;
+}
+
+.export-link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.design-preview {
+  margin: 3rem 0 4rem;
+}
+
+.design-preview h2 {
+  margin-bottom: 1rem;
+}
+
+.design-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-soft);
+  background: url('image/cdcNC.png') center/cover no-repeat;
+  min-height: 260px;
+}
+
+.design-text-block {
+  position: relative;
+  padding: 1.75rem 2.5rem;
+  max-width: 60%;
+}
+
+.design-name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+  color: var(--accent);
+}
+
+.design-company {
+  color: var(--text-main);
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+}
+
+.design-position {
+  font-size: 1rem;
+  font-style: italic;
+  margin-bottom: 0.6rem;
+  color: var(--accent);
+}
+
+.design-name-line {
+  width: 260px;
+  height: 2px;
+  background-color: var(--text-main);
+  margin: 0.2rem 0 0.5rem;
+}
+
+.design-line {
+  font-size: 0.95rem;
+  margin-bottom: 0.4rem;
+  color: var(--accent);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.design-contact-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+#designAddress,
+#exportAddress {
+  /* pre: keep the explicit newline between street and city lines,
+     but do NOT wrap inside each line (so city + postcode stay together) */
+  white-space: pre;
+  font-size: 0.75rem;
+  color: var(--accent);
+  line-height: 1.1;
+}
+
+.design-contact-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: var(--text-main);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.design-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.design-header-text {
+  flex: 1;
+  text-align: left;
+}
+
+.design-logo {
+  max-width: 48px;
+  height: auto;
+  margin-bottom: 0;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .design-card {
+    background-position: center top;
+  }
+
+  .design-text-block {
+    max-width: 100%;
+    padding: 1.5rem 1.5rem 1.75rem;
+  }
+}
+
+/* Export preview: give the text block more width so long addresses fit on 2 lines */
+#exportCardWrapper .design-text-block {
+  max-width: 75%;
+}
+
+.preview-illustration {
+  flex: 0 0 200px;
+  height: 200px;
+  background: var(--bg-neutral);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.preview-illustration img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.preview-content {
+  flex: 1;
+}
+
+.preview-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.preview-role {
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+}
+
+.preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.preview-list li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+}
+
+.preview-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 0.75rem;
+  color: var(--accent);
+  font-size: 1.1rem;
+}
+
+/* QR code section */
+.qr-section {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
+.qr-box {
+  display: inline-block;
+  background: white;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .output-section {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-card {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .preview-illustration {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 1.5rem;
+  }
+  
+  .preview-list li {
+    justify-content: center;
+  }
+  
+  .field-row {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+/* Save actions */
+.save-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-bottom: 3rem;
+}
+
+.save-button {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.save-button.secondary {
+  background: #ffffff;
+  color: var(--accent);
+  border: 1px solid var(--accent-soft);
+}
+
+.save-button:hover {
+  background: #9d5a4f;
+}
+
+.save-button.secondary:hover {
+  background: var(--accent-soft);
+}
+
+/* (no special print overrides) */

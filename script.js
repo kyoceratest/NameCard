@@ -11,10 +11,9 @@
     var lastSavedPayload = '';
     var LOCAL_KEY_LAST = 'namecard_last';
 
-    // Base URL for the NameCard backend API. For local development, this
-    // points to the Node/Express server started from NameCard/backend.
-    // In production this can be updated to the deployed cloud URL.
-    var NAMECARD_API_BASE = 'http://localhost:4000';
+    // Base URL for the NameCard backend API.
+    // This is the deployed Render backend so Database QR works from any device.
+    var NAMECARD_API_BASE = 'https://namecard-17wq.onrender.com';
 
 
     function escapeVCardValue(value) {

@@ -46,29 +46,125 @@ router.get('/', async (req, res) => {
 
     const esc = (value) => String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+    const fullName = `${esc(card.first_name)} ${esc(card.last_name)}`.trim();
+    const addressParts = [card.address_street, card.address_city, card.address_region, card.address_zip_country]
+      .filter(Boolean)
+      .map(esc)
+      .join(', ');
+
     res.type('html').send(`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NameCard Scan</title>
+  <title>NameCard Contact</title>
+  <style>
+    body { margin:0; padding:1.5rem; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#faf5f0; }
+    .page { max-width: 720px; margin: 0 auto; }
+    .brand { font-weight:600; letter-spacing:0.05em; font-size:0.9rem; color:#b66b4d; text-transform:uppercase; margin-bottom:0.5rem; }
+    .card { background:#fff; border-radius:16px; padding:1.5rem 1.75rem; box-shadow:0 10px 25px rgba(0,0,0,0.06); }
+    .card-header { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; margin-bottom:1rem; }
+    .name-block { flex:1; }
+    .name { font-size:1.4rem; font-weight:600; color:#333; margin:0 0 0.25rem 0; }
+    .position { font-size:0.95rem; color:#777; margin:0 0 0.5rem 0; }
+    .company { font-size:0.95rem; color:#444; font-weight:500; }
+    .info-row { display:flex; align-items:center; font-size:0.95rem; color:#444; margin:0.2rem 0; }
+    .info-label { min-width:4.5rem; font-weight:500; color:#666; }
+    .info-value { flex:1; }
+    .actions { margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; padding:0.5rem 1rem; border-radius:999px; font-size:0.9rem; border:1px solid transparent; cursor:pointer; text-decoration:none; }
+    .btn-primary { background:#b66b4d; color:#fff; border-color:#b66b4d; }
+    .btn-primary:hover { background:#9b5a40; border-color:#9b5a40; }
+    .btn-ghost { background:#fff; color:#555; border-color:#ddd; }
+    .btn-ghost:hover { border-color:#c5c5c5; }
+    .hint { margin-top:0.75rem; font-size:0.8rem; color:#777; }
+  </style>
 </head>
-<body style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 1.5rem; max-width: 640px; margin: 0 auto;">
-  <h1>Contact details</h1>
-  <p><strong>Name:</strong> ${esc(card.first_name)} ${esc(card.last_name)}</p>
-  ${card.company ? `<p><strong>Company:</strong> ${esc(card.company)}</p>` : ''}
-  ${card.position ? `<p><strong>Position:</strong> ${esc(card.position)}</p>` : ''}
-  ${card.mobile ? `<p><strong>Mobile:</strong> ${esc(card.mobile)}</p>` : ''}
-  ${card.office ? `<p><strong>Office:</strong> ${esc(card.office)}</p>` : ''}
-  ${card.email ? `<p><strong>Email:</strong> ${esc(card.email)}</p>` : ''}
-  ${card.address_street || card.address_city || card.address_region || card.address_zip_country
-        ? `<p><strong>Address:</strong> ${esc(card.address_street || '')} ${esc(card.address_city || '')} ${esc(card.address_region || '')} ${esc(card.address_zip_country || '')}</p>`
-        : ''}
+<body>
+  <main class="page">
+    <div class="brand">Cœur Du Ciel · Digital NameCard</div>
+    <section class="card">
+      <div class="card-header">
+        <div class="name-block">
+          <h1 class="name">${fullName || 'Contact'}</h1>
+          ${card.position ? `<p class="position">${esc(card.position)}</p>` : ''}
+          ${card.company ? `<p class="company">${esc(card.company)}</p>` : ''}
+        </div>
+      </div>
+      <div>
+        ${card.mobile ? `<div class="info-row"><div class="info-label">Mobile</div><div class="info-value">${esc(card.mobile)}</div></div>` : ''}
+        ${card.office ? `<div class="info-row"><div class="info-label">Office</div><div class="info-value">${esc(card.office)}</div></div>` : ''}
+        ${card.email ? `<div class="info-row"><div class="info-label">Email</div><div class="info-value">${esc(card.email)}</div></div>` : ''}
+        ${addressParts ? `<div class="info-row"><div class="info-label">Address</div><div class="info-value">${addressParts}</div></div>` : ''}
+      </div>
+      <div class="actions">
+        <a class="btn btn-primary" href="/scan/vcard?t=${encodeURIComponent(token)}">Save vCard</a>
+        ${card.email ? `<a class="btn btn-ghost" href="mailto:${esc(card.email)}">Send email</a>` : ''}
+      </div>
+      <p class="hint">Use "Save vCard" to add this contact directly to your phone or email client.</p>
+    </section>
+  </main>
 </body>
 </html>`);
   } catch (err) {
     console.error('Error handling scan request:', err);
     res.type('html').status(500).send('<p>Server error while resolving this QR code.</p>');
+  }
+});
+
+// vCard download endpoint for a given token
+router.get('/vcard', async (req, res) => {
+  const tokenRaw = req.query.t || '';
+  const token = String(tokenRaw);
+
+  if (!token) {
+    res.status(400).send('Missing token');
+    return;
+  }
+
+  try {
+    const cardResult = await pool.query(
+      'SELECT first_name, last_name, company, position, email, mobile, office, address_street, address_city, address_region, address_zip_country FROM cards WHERE public_token = $1',
+      [token]
+    );
+
+    if (cardResult.rows.length === 0) {
+      res.status(404).send('Card not found');
+      return;
+    }
+
+    const card = cardResult.rows[0];
+
+    const esc = (value) => String(value || '').replace(/\\/g, '\\\\').replace(/\n/g, '\\n').replace(/,/g, '\\,').replace(/;/g, '\\;');
+
+    const firstName = esc(card.first_name);
+    const lastName = esc(card.last_name);
+    const email = esc(card.email);
+    const mobile = esc(card.mobile);
+
+    const vcardLines = [];
+    vcardLines.push('BEGIN:VCARD');
+    vcardLines.push('VERSION:3.0');
+    vcardLines.push('N:' + lastName + ';' + firstName + ';;;');
+    vcardLines.push('FN:' + (firstName + ' ' + lastName).trim());
+
+    if (mobile) {
+      vcardLines.push('TEL;TYPE=CELL,VOICE:' + mobile);
+    }
+    if (email) {
+      vcardLines.push('EMAIL;TYPE=INTERNET:' + email);
+    }
+
+    vcardLines.push('END:VCARD');
+
+    const vcardContent = vcardLines.join('\n');
+
+    res.setHeader('Content-Type', 'text/vcard; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="contact.vcf"');
+    res.send(vcardContent);
+  } catch (err) {
+    console.error('Error generating vCard:', err);
+    res.status(500).send('Server error while generating vCard');
   }
 });
 

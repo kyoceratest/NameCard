@@ -12,14 +12,9 @@
     var LOCAL_KEY_LAST = 'namecard_last';
 
     // Base URL for the NameCard backend API.
-    // Use localhost when editing/testing on this machine, otherwise use the
-    // deployed Render backend so Database QR works from any device.
-    var NAMECARD_API_BASE;
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-        NAMECARD_API_BASE = 'http://localhost:4000';
-    } else {
-        NAMECARD_API_BASE = 'https://namecard-17wq.onrender.com';
-    }
+    // Always use the deployed Render backend so Database QR works without
+    // requiring a local server.
+    var NAMECARD_API_BASE = 'https://namecard-17wq.onrender.com';
 
 
     function escapeVCardValue(value) {

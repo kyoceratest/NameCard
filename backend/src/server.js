@@ -3,6 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import cardsRouter from './routes/cards.js';
 import scanRouter from './routes/scan.js';
+import dashboardRouter from './routes/dashboard.js';
 import { initDb } from './db.js';
 
 dotenv.config();
@@ -19,6 +20,7 @@ app.get('/health', (req, res) => {
 
 app.use('/api/cards', cardsRouter);
 app.use('/scan', scanRouter);
+app.use('/dashboard', dashboardRouter);
 
 initDb()
   .then(() => {

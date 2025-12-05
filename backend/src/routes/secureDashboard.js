@@ -100,20 +100,20 @@ router.get('/', (_req, res) => {
           return;
         }
 
-        const header = `
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>When</th>
-                <th>Source</th>
-                <th>Name</th>
-                <th>Company</th>
-                <th>Email</th>
-                <th>Mobile</th>
-              </tr>
-            </thead>
-            <tbody>`;
+        var header = '' +
+          '<table>' +
+            '<thead>' +
+              '<tr>' +
+                '<th>ID</th>' +
+                '<th>When</th>' +
+                '<th>Source</th>' +
+                '<th>Name</th>' +
+                '<th>Company</th>' +
+                '<th>Email</th>' +
+                '<th>Mobile</th>' +
+              '</tr>' +
+            '</thead>' +
+            '<tbody>';
 
         const rows = scans.map(function(row) {
           function esc(v) {

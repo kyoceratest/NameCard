@@ -59,8 +59,9 @@ router.get('/', async (req, res) => {
     <h1>Scan Dashboard</h1>
     <p style="font-size:0.9rem; color:#555;">Recent scans of database QR codes (latest 200 entries).</p>
     <div class="actions">
-      <a class="btn" href="/dashboard/export">Export all scans (CSV)</a>
+      <a class="btn" href="/dashboard/export">Export for Excel (CSV)</a>
     </div>
+    <p style="font-size:0.8rem; color:#777; margin:0 0 1rem 0;">Downloads a standard CSV file compatible with Excel and other systems.</p>
     <table>
       <thead>
         <tr>

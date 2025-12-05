@@ -25,6 +25,31 @@ export async function initDb() {
   try {
     await client.query('BEGIN');
 
+    // Core multi-tenant tables
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tenants (
+        id SERIAL PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT UNIQUE NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        tenant_id INTEGER REFERENCES tenants(id) ON DELETE CASCADE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        role TEXT NOT NULL CHECK (role IN (
+          'platform_admin','tenant_admin','manager','employee','client'
+        )),
+        display_name TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        last_login_at TIMESTAMPTZ
+      );
+    `);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS cards (
         id SERIAL PRIMARY KEY,
@@ -41,9 +66,22 @@ export async function initDb() {
         address_region TEXT,
         address_zip_country TEXT,
         details_json JSONB,
+        tenant_id INTEGER REFERENCES tenants(id),
+        owner_user_id INTEGER REFERENCES users(id),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+    `);
+
+    // Backwards-compatible: ensure new columns exist even if table was created earlier
+    await client.query(`
+      ALTER TABLE cards
+      ADD COLUMN IF NOT EXISTS tenant_id INTEGER REFERENCES tenants(id);
+    `);
+
+    await client.query(`
+      ALTER TABLE cards
+      ADD COLUMN IF NOT EXISTS owner_user_id INTEGER REFERENCES users(id);
     `);
 
     await client.query(`
@@ -52,8 +90,20 @@ export async function initDb() {
         card_id INTEGER REFERENCES cards(id) ON DELETE CASCADE,
         source TEXT,
         scan_meta JSONB,
+        tenant_id INTEGER REFERENCES tenants(id),
+        scanner_user_id INTEGER REFERENCES users(id),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+    `);
+
+    await client.query(`
+      ALTER TABLE scans
+      ADD COLUMN IF NOT EXISTS tenant_id INTEGER REFERENCES tenants(id);
+    `);
+
+    await client.query(`
+      ALTER TABLE scans
+      ADD COLUMN IF NOT EXISTS scanner_user_id INTEGER REFERENCES users(id);
     `);
 
     await client.query('COMMIT');

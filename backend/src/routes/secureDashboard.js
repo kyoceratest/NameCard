@@ -70,6 +70,29 @@ router.get('/', (_req, res) => {
           <button id="signOutBtn" class="btn" style="border-color:#aa3d3d; color:#aa3d3d;">Sign out</button>
         </div>
       </div>
+      <div style="display:flex; flex-wrap:wrap; gap:0.6rem; margin-bottom:0.6rem; align-items:flex-end;">
+        <div>
+          <label for="filterText">Search</label>
+          <input id="filterText" type="text" placeholder="Name, company, email..." style="width:210px; padding:0.35rem 0.55rem; border-radius:999px; border:1px solid #d9bca5; font-size:0.8rem;" />
+        </div>
+        <div>
+          <label for="filterSource">Source</label>
+          <select id="filterSource" style="width:130px; padding:0.35rem 0.55rem; border-radius:999px; border:1px solid #d9bca5; font-size:0.8rem; background:#fff;">
+            <option value="">All</option>
+            <option value="public">public</option>
+            <option value="qr">qr</option>
+            <option value="direct">direct</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterFrom">From</label>
+          <input id="filterFrom" type="date" style="padding:0.3rem 0.55rem; border-radius:999px; border:1px solid #d9bca5; font-size:0.8rem;" />
+        </div>
+        <div>
+          <label for="filterTo">To</label>
+          <input id="filterTo" type="date" style="padding:0.3rem 0.55rem; border-radius:999px; border:1px solid #d9bca5; font-size:0.8rem;" />
+        </div>
+      </div>
       <div id="statsRow" class="stats-row" style="display:none;"></div>
       <div id="scansTableWrapper">
         <p class="muted">No data loaded yet.</p>
@@ -90,8 +113,13 @@ router.get('/', (_req, res) => {
       const refreshBtn = document.getElementById('refreshBtn');
       const signOutBtn = document.getElementById('signOutBtn');
       const statsRow = document.getElementById('statsRow');
+      const filterText = document.getElementById('filterText');
+      const filterSource = document.getElementById('filterSource');
+      const filterFrom = document.getElementById('filterFrom');
+      const filterTo = document.getElementById('filterTo');
 
       let authToken = null;
+      let allScans = [];
 
       function setStatus(message, type) {
         loginStatus.textContent = message || '';
@@ -176,6 +204,60 @@ router.get('/', (_req, res) => {
         scansTableWrapper.innerHTML = header + rows + footer;
       }
 
+      function applyFilters() {
+        var scans = allScans || [];
+        if (!scans.length) {
+          renderScans([]);
+          return;
+        }
+
+        var text = (filterText && filterText.value || '').toLowerCase().trim();
+        var source = filterSource && filterSource.value || '';
+        var fromVal = filterFrom && filterFrom.value || '';
+        var toVal = filterTo && filterTo.value || '';
+
+        var fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+        var toDate = toVal ? new Date(toVal + 'T23:59:59') : null;
+
+        var filtered = scans.filter(function(row) {
+          // Text filter on name, company, email, mobile
+          if (text) {
+            var hay = (
+              (row.first_name || '') + ' ' +
+              (row.last_name || '') + ' ' +
+              (row.company || '') + ' ' +
+              (row.email || '') + ' ' +
+              (row.mobile || '')
+            ).toLowerCase();
+            if (hay.indexOf(text) === -1) {
+              return false;
+            }
+          }
+
+          // Source filter
+          if (source && row.source !== source) {
+            return false;
+          }
+
+          // Date range filter on created_at
+          if ((fromDate || toDate) && row.created_at) {
+            var dt = new Date(row.created_at);
+            if (!isNaN(dt.getTime())) {
+              if (fromDate && dt < fromDate) {
+                return false;
+              }
+              if (toDate && dt > toDate) {
+                return false;
+              }
+            }
+          }
+
+          return true;
+        });
+
+        renderScans(filtered);
+      }
+
       function fetchScans() {
         if (!authToken) return;
         refreshBtn.disabled = true;
@@ -188,10 +270,16 @@ router.get('/', (_req, res) => {
           .then(function(data) {
             refreshBtn.disabled = false;
             if (!data || !data.success) {
+              allScans = [];
               scansTableWrapper.innerHTML = '<p class="muted">Failed to load scans.</p>';
+              if (statsRow) {
+                statsRow.style.display = 'none';
+                statsRow.innerHTML = '';
+              }
               return;
             }
-            renderScans(data.scans || []);
+            allScans = data.scans || [];
+            applyFilters();
           })
           .catch(function(err) {
             console.error('Error loading secure scans:', err);
@@ -243,6 +331,30 @@ router.get('/', (_req, res) => {
       refreshBtn.addEventListener('click', function() {
         fetchScans();
       });
+
+      if (filterText) {
+        filterText.addEventListener('input', function() {
+          applyFilters();
+        });
+      }
+
+      if (filterSource) {
+        filterSource.addEventListener('change', function() {
+          applyFilters();
+        });
+      }
+
+      if (filterFrom) {
+        filterFrom.addEventListener('change', function() {
+          applyFilters();
+        });
+      }
+
+      if (filterTo) {
+        filterTo.addEventListener('change', function() {
+          applyFilters();
+        });
+      }
 
       signOutBtn.addEventListener('click', function() {
         authToken = null;

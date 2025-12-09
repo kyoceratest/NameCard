@@ -18,6 +18,14 @@ router.get('/', async (req, res) => {
     });
   }
 
+  if (req.user.role !== 'tenant_admin') {
+    return res.status(403).json({
+      success: false,
+      code: 'forbidden',
+      message: 'Admin role required to view secure scans.'
+    });
+  }
+
   try {
     // First get user's tenant_id from the users table
     const userResult = await pool.query(

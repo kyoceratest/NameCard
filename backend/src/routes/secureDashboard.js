@@ -266,18 +266,33 @@ router.get('/', (_req, res) => {
             'x-auth-token': authToken
           }
         })
-          .then(function(resp) { return resp.json(); })
-          .then(function(data) {
+          .then(function(resp) {
+            var status = resp.status;
+            return resp.json().then(function(data) {
+              return { status: status, data: data };
+            });
+          })
+          .then(function(result) {
             refreshBtn.disabled = false;
+            var data = result && result.data;
+
             if (!data || !data.success) {
               allScans = [];
-              scansTableWrapper.innerHTML = '<p class="muted">Failed to load scans.</p>';
+
+              // Specific message for non-admin roles
+              if (data && data.code === 'forbidden') {
+                scansTableWrapper.innerHTML = '<p class="muted">You are signed in, but this secure dashboard is reserved for admin users. Please contact your administrator if you need access.</p>';
+              } else {
+                scansTableWrapper.innerHTML = '<p class="muted">Failed to load scans.</p>';
+              }
+
               if (statsRow) {
                 statsRow.style.display = 'none';
                 statsRow.innerHTML = '';
               }
               return;
             }
+
             allScans = data.scans || [];
             applyFilters();
           })

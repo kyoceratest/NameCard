@@ -69,6 +69,107 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// POST /auth/users/:id/activate
+// Re-activate a previously soft-deleted user.
+router.post('/users/:id/activate', async (req, res) => {
+  const authHeader = req.header('x-auth-token');
+  const token = authHeader && authHeader.trim();
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required.'
+    });
+  }
+
+  const [userIdPart] = token.split(':');
+  const requesterId = parseInt(userIdPart, 10);
+  const targetId = parseInt(req.params.id, 10);
+
+  if (!Number.isFinite(requesterId) || !Number.isFinite(targetId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid user id.'
+    });
+  }
+
+  try {
+    const meResult = await pool.query(
+      'SELECT id, tenant_id, role FROM users WHERE id = $1',
+      [requesterId]
+    );
+
+    if (meResult.rowCount === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found for this token.'
+      });
+    }
+
+    const me = meResult.rows[0];
+
+    const targetResult = await pool.query(
+      'SELECT id, tenant_id, role, is_active FROM users WHERE id = $1',
+      [targetId]
+    );
+
+    if (targetResult.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    const target = targetResult.rows[0];
+
+    if (target.is_active === true) {
+      return res.status(200).json({
+        success: true,
+        message: 'User is already active.'
+      });
+    }
+
+    // Role-based permission checks (same as for delete)
+    if (me.role === 'cdc_admin') {
+      // can activate any user
+    } else if (me.role === 'tenant_admin') {
+      if (target.tenant_id !== me.tenant_id) {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only activate users from your own tenant.'
+        });
+      }
+      if (!['manager', 'employee'].includes(target.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Tenant admin can only activate manager or employee users.'
+        });
+      }
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to activate users.'
+      });
+    }
+
+    await pool.query(
+      'UPDATE users SET is_active = true WHERE id = $1',
+      [targetId]
+    );
+
+    return res.json({
+      success: true,
+      message: 'User has been re-activated.'
+    });
+  } catch (err) {
+    console.error('Error activating user via /auth/users/:id/activate:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while activating user.'
+    });
+  }
+});
+
 // --- User management helpers (for /secure-users) ---
 
 // Build a simple user object from DB row
@@ -78,7 +179,8 @@ function mapUserRow(row) {
     tenant_id: row.tenant_id,
     email: row.email,
     role: row.role,
-    display_name: row.display_name
+    display_name: row.display_name,
+    is_active: row.is_active
   };
 }
 
@@ -127,9 +229,9 @@ router.get('/users/me', async (req, res) => {
     const allowedRoles = [];
 
     if (me.role === 'cdc_admin') {
-      // CDC admin: can see all **active** users, can create tenant_admin/manager/employee
+      // CDC admin: can see all users, can create tenant_admin/manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name FROM users WHERE (is_active IS NULL OR is_active = true) ORDER BY email'
+        'SELECT id, tenant_id, email, role, display_name, is_active FROM users ORDER BY email'
       );
       canViewUsers = true;
       canDeleteUsers = true;
@@ -139,9 +241,9 @@ router.get('/users/me', async (req, res) => {
         { value: 'employee', label: 'Employee (employee)' }
       );
     } else if (me.role === 'tenant_admin') {
-      // Tenant admin: can see only their **active** tenant users, can create manager/employee
+      // Tenant admin: can see only their tenant users, can create manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name FROM users WHERE tenant_id = $1 AND (is_active IS NULL OR is_active = true) ORDER BY email',
+        'SELECT id, tenant_id, email, role, display_name, is_active FROM users WHERE tenant_id = $1 ORDER BY email',
         [me.tenant_id]
       );
       canViewUsers = true;

@@ -134,15 +134,21 @@ router.get('/', (req, res) => {
                 '<th>Email</th>' +
                 '<th>Display name</th>' +
                 '<th>Role</th>' +
+                '<th>Status</th>' +
                 (canDelete ? '<th></th>' : '') +
               '</tr>' +
             '</thead>' +
             '<tbody>';
 
         var rows = users.map(function(u) {
+          var statusText = (u.is_active === false) ? 'Disabled' : 'Active';
           var actions = '';
           if (canDelete && u.canDelete) {
-            actions = '<td><button class="btn btn-small" data-user-id="' + esc(u.id) + '">Delete</button></td>';
+            if (u.is_active === false) {
+              actions = '<td><button class="btn btn-small" data-user-id="' + esc(u.id) + '" data-action="activate">Activate</button></td>';
+            } else {
+              actions = '<td><button class="btn btn-small" data-user-id="' + esc(u.id) + '" data-action="disable">Disable</button></td>';
+            }
           } else if (canDelete) {
             actions = '<td></td>';
           }
@@ -151,6 +157,7 @@ router.get('/', (req, res) => {
             '<td>' + esc(u.email) + '</td>' +
             '<td>' + esc(u.display_name || '') + '</td>' +
             '<td>' + esc(u.role) + '</td>' +
+            '<td>' + esc(statusText) + '</td>' +
             actions +
             '</tr>';
         }).join('');
@@ -201,31 +208,60 @@ router.get('/', (req, res) => {
                 buttons.forEach(function(btn) {
                   btn.addEventListener('click', function() {
                     var id = btn.getAttribute('data-user-id');
+                    var action = btn.getAttribute('data-action') || 'disable';
                     if (!id) return;
-                    if (!window.confirm('Disable this user account? They will no longer be able to log in.')) {
-                      return;
-                    }
 
-                    fetch('/auth/users/' + encodeURIComponent(id), {
-                      method: 'DELETE',
-                      headers: {
-                        'Content-Type': 'application/json',
-                        'x-auth-token': authToken
-                      },
-                      body: JSON.stringify({ reason: 'Disabled via secure users UI' })
-                    })
-                      .then(function(resp) { return resp.json(); })
-                      .then(function(delData) {
-                        if (!delData || !delData.success) {
-                          window.alert((delData && delData.message) || 'Failed to disable user.');
-                          return;
-                        }
-                        loadUsers();
+                    if (action === 'activate') {
+                      if (!window.confirm('Activate this user account? They will be able to log in again.')) {
+                        return;
+                      }
+
+                      fetch('/auth/users/' + encodeURIComponent(id) + '/activate', {
+                        method: 'POST',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'x-auth-token': authToken
+                        },
+                        body: JSON.stringify({ reason: 'Reactivated via secure users UI' })
                       })
-                      .catch(function(err) {
-                        console.error('Error disabling user:', err);
-                        window.alert('Error while disabling user.');
-                      });
+                        .then(function(resp) { return resp.json(); })
+                        .then(function(actData) {
+                          if (!actData || !actData.success) {
+                            window.alert((actData && actData.message) || 'Failed to activate user.');
+                            return;
+                          }
+                          loadUsers();
+                        })
+                        .catch(function(err) {
+                          console.error('Error activating user:', err);
+                          window.alert('Error while activating user.');
+                        });
+                    } else {
+                      if (!window.confirm('Disable this user account? They will no longer be able to log in.')) {
+                        return;
+                      }
+
+                      fetch('/auth/users/' + encodeURIComponent(id), {
+                        method: 'DELETE',
+                        headers: {
+                          'Content-Type': 'application/json',
+                          'x-auth-token': authToken
+                        },
+                        body: JSON.stringify({ reason: 'Disabled via secure users UI' })
+                      })
+                        .then(function(resp) { return resp.json(); })
+                        .then(function(delData) {
+                          if (!delData || !delData.success) {
+                            window.alert((delData && delData.message) || 'Failed to disable user.');
+                            return;
+                          }
+                          loadUsers();
+                        })
+                        .catch(function(err) {
+                          console.error('Error disabling user:', err);
+                          window.alert('Error while disabling user.');
+                        });
+                    }
                   });
                 });
               }

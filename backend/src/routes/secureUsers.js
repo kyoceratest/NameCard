@@ -47,8 +47,15 @@ router.get('/', (req, res) => {
     <p class="muted">Manage users for your tenant (client admins manage only their own staff).</p>
 
     <section class="section" id="info-section">
-      <p id="currentUserInfo" class="muted"></p>
-      <p id="accessNote" class="muted"></p>
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; flex-wrap:wrap;">
+        <div>
+          <p id="currentUserInfo" class="muted" style="margin:0 0 0.3rem 0;"></p>
+          <p id="accessNote" class="muted" style="margin:0;"></p>
+        </div>
+        <div>
+          <button id="changeTokenBtn" class="btn">Logout / change user</button>
+        </div>
+      </div>
     </section>
 
     <section class="section" id="create-section" style="display:none;">
@@ -98,6 +105,7 @@ router.get('/', (req, res) => {
       var newRole = document.getElementById('newRole');
       var createUserBtn = document.getElementById('createUserBtn');
       var createStatus = document.getElementById('createStatus');
+      var changeTokenBtn = document.getElementById('changeTokenBtn');
 
       // For now this page relies on the same token header as secure dashboard.
       // You can open it in a new tab and paste the token manually if needed,
@@ -145,7 +153,10 @@ router.get('/', (req, res) => {
 
       function loadUsers() {
         if (!authToken) {
-          accessNote.textContent = 'This page requires an auth token in the x-auth-token header. For normal use, access it from the main secure dashboard in the future integration.';
+          accessNote.textContent = 'This page requires an auth token in the x-auth-token header. Paste the token from the secure dashboard login when prompted.';
+          currentUserInfo.textContent = '';
+          createSection.style.display = 'none';
+          listSection.style.display = 'none';
           return;
         }
 
@@ -232,8 +243,18 @@ router.get('/', (req, res) => {
           });
       });
 
+      if (changeTokenBtn) {
+        changeTokenBtn.addEventListener('click', function() {
+          authToken = window.prompt('Enter auth token (x-auth-token) for user management page:') || '';
+          if (authToken) {
+            authToken = authToken.trim();
+          }
+          loadUsers();
+        });
+      }
+
       // TEMP: ask for token once when loading page.
-      authToken = window.prompt('Enter auth token (x-auth-token) for user management page:');
+      authToken = window.prompt('Enter auth token (x-auth-token) for user management page:') || '';
       if (authToken) {
         authToken = authToken.trim();
       }

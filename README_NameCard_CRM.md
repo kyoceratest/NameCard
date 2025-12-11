@@ -2,6 +2,19 @@
 
 This folder contains the **Name Card QR Generator** and a small **client CRM/Scanner** that we built together.
 
+## Quick start – Secure Scan Dashboard (Render)
+
+- Secure dashboard URL (production): `https://namecard-17wq.onrender.com/secure-dashboard`
+- The old `/dashboard` URL now redirects to this secure page.
+- Log in with a user stored in the Neon `users` table, for example:
+  - Admin demo: `laiwah76@gmail.com` (role `tenant_admin`)
+  - Viewer demo: `rosetse101@gmail.com` (role `tenant_user`)
+- After admin login you will see:
+  - Tenant‑filtered scan table.
+  - Stats (total scans, unique cards, last 7 days).
+  - Filters (search, source, from/to dates).
+- Non‑admin users can sign in but will see an "admin only" message instead of the scans.
+
 ## 1. Main parts
 
 - `index.html`

@@ -18,11 +18,14 @@ router.get('/', async (req, res) => {
     });
   }
 
-  if (req.user.role !== 'tenant_admin') {
+  // Roles allowed to view secure scans. All are still tenant-restricted
+  // except the future global CDC admin.
+  const allowedViewRoles = ['cdc_admin', 'tenant_admin', 'manager', 'employee'];
+  if (!req.user.role || allowedViewRoles.indexOf(req.user.role) === -1) {
     return res.status(403).json({
       success: false,
       code: 'forbidden',
-      message: 'Admin role required to view secure scans.'
+      message: 'Your account does not have permission to view secure scans.'
     });
   }
 

@@ -127,9 +127,9 @@ router.get('/users/me', async (req, res) => {
     const allowedRoles = [];
 
     if (me.role === 'cdc_admin') {
-      // CDC admin: can see all users, can create tenant_admin/manager/employee
+      // CDC admin: can see all **active** users, can create tenant_admin/manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name FROM users ORDER BY email'
+        'SELECT id, tenant_id, email, role, display_name FROM users WHERE (is_active IS NULL OR is_active = true) ORDER BY email'
       );
       canViewUsers = true;
       canDeleteUsers = true;
@@ -139,9 +139,9 @@ router.get('/users/me', async (req, res) => {
         { value: 'employee', label: 'Employee (employee)' }
       );
     } else if (me.role === 'tenant_admin') {
-      // Tenant admin: can see only their tenant users, can create manager/employee
+      // Tenant admin: can see only their **active** tenant users, can create manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name FROM users WHERE tenant_id = $1 ORDER BY email',
+        'SELECT id, tenant_id, email, role, display_name FROM users WHERE tenant_id = $1 AND (is_active IS NULL OR is_active = true) ORDER BY email',
         [me.tenant_id]
       );
       canViewUsers = true;

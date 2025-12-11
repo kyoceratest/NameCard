@@ -24,7 +24,8 @@ router.post('/login', async (req, res) => {
     const result = await pool.query(
       `SELECT id, tenant_id, email, password_hash, role, display_name
        FROM users
-       WHERE email = $1`,
+       WHERE email = $1
+         AND (is_active IS NULL OR is_active = true)`,
       [email.toLowerCase()]
     );
 
@@ -122,6 +123,7 @@ router.get('/users/me', async (req, res) => {
 
     let usersResult;
     let canViewUsers = false;
+    let canDeleteUsers = false;
     const allowedRoles = [];
 
     if (me.role === 'cdc_admin') {
@@ -130,6 +132,7 @@ router.get('/users/me', async (req, res) => {
         'SELECT id, tenant_id, email, role, display_name FROM users ORDER BY email'
       );
       canViewUsers = true;
+      canDeleteUsers = true;
       allowedRoles.push(
         { value: 'tenant_admin', label: 'Client admin (tenant_admin)' },
         { value: 'manager', label: 'Manager (manager)' },
@@ -142,6 +145,7 @@ router.get('/users/me', async (req, res) => {
         [me.tenant_id]
       );
       canViewUsers = true;
+      canDeleteUsers = true;
       allowedRoles.push(
         { value: 'manager', label: 'Manager (manager)' },
         { value: 'employee', label: 'Employee (employee)' }
@@ -152,7 +156,24 @@ router.get('/users/me', async (req, res) => {
       canViewUsers = false;
     }
 
-    const users = (usersResult.rows || []).map(mapUserRow);
+    const users = (usersResult.rows || []).map((row) => {
+      const u = mapUserRow(row);
+
+      // Compute per-user delete permission for convenience in UI
+      let canDelete = false;
+      if (canDeleteUsers && u.id !== me.id) {
+        if (me.role === 'cdc_admin') {
+          canDelete = true;
+        } else if (me.role === 'tenant_admin') {
+          if (u.tenant_id === me.tenant_id && (u.role === 'manager' || u.role === 'employee')) {
+            canDelete = true;
+          }
+        }
+      }
+
+      u.canDelete = canDelete;
+      return u;
+    });
 
     return res.json({
       success: true,
@@ -165,6 +186,7 @@ router.get('/users/me', async (req, res) => {
       },
       users,
       canViewUsers,
+      canDeleteUsers,
       allowedRoles
     });
   } catch (err) {
@@ -291,6 +313,128 @@ router.post('/users', async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Server error while creating user.'
+    });
+  }
+});
+
+// DELETE /auth/users/:id
+// Soft delete: marks user as inactive and logs into user_deletions.
+router.delete('/users/:id', async (req, res) => {
+  const authHeader = req.header('x-auth-token');
+  const token = authHeader && authHeader.trim();
+
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required.'
+    });
+  }
+
+  const [userIdPart] = token.split(':');
+  const requesterId = parseInt(userIdPart, 10);
+  const targetId = parseInt(req.params.id, 10);
+
+  if (!Number.isFinite(requesterId) || !Number.isFinite(targetId)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid user id.'
+    });
+  }
+
+  if (requesterId === targetId) {
+    return res.status(400).json({
+      success: false,
+      message: 'You cannot delete your own account.'
+    });
+  }
+
+  const { reason } = req.body || {};
+
+  try {
+    const meResult = await pool.query(
+      'SELECT id, tenant_id, role FROM users WHERE id = $1',
+      [requesterId]
+    );
+
+    if (meResult.rowCount === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found for this token.'
+      });
+    }
+
+    const me = meResult.rows[0];
+
+    const targetResult = await pool.query(
+      'SELECT id, tenant_id, role, is_active FROM users WHERE id = $1',
+      [targetId]
+    );
+
+    if (targetResult.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.'
+      });
+    }
+
+    const target = targetResult.rows[0];
+
+    if (target.is_active === false) {
+      return res.status(200).json({
+        success: true,
+        message: 'User is already inactive.'
+      });
+    }
+
+    // Role-based permission checks
+    if (me.role === 'cdc_admin') {
+      // can delete any user except self (already checked)
+    } else if (me.role === 'tenant_admin') {
+      if (target.tenant_id !== me.tenant_id) {
+        return res.status(403).json({
+          success: false,
+          message: 'You can only delete users from your own tenant.'
+        });
+      }
+      if (!['manager', 'employee'].includes(target.role)) {
+        return res.status(403).json({
+          success: false,
+          message: 'Tenant admin can only delete manager or employee users.'
+        });
+      }
+    } else {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete users.'
+      });
+    }
+
+    // Mark user as inactive
+    await pool.query(
+      'UPDATE users SET is_active = false WHERE id = $1',
+      [targetId]
+    );
+
+    // Insert audit record; ignore failure if table does not exist
+    try {
+      await pool.query(
+        `INSERT INTO user_deletions (user_id, tenant_id, requested_by, reason)
+         VALUES ($1, $2, $3, $4)`,
+        [targetId, target.tenant_id, me.id, reason || null]
+      );
+    } catch (auditErr) {
+      console.error('Error writing user_deletions audit record:', auditErr);
+    }
+
+    return res.json({
+      success: true,
+      message: 'User has been disabled.'
+    });
+  } catch (err) {
+    console.error('Error deleting user via /auth/users/:id:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error while deleting user.'
     });
   }
 });

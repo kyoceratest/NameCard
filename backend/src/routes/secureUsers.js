@@ -122,7 +122,7 @@ router.get('/', (req, res) => {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
-      function renderUsers(users) {
+      function renderUsers(users, canDelete) {
         if (!users || !users.length) {
           usersTableWrapper.innerHTML = '<p class="muted">No users found for this tenant.</p>';
           return;
@@ -135,15 +135,24 @@ router.get('/', (req, res) => {
                 '<th>Email</th>' +
                 '<th>Display name</th>' +
                 '<th>Role</th>' +
+                (canDelete ? '<th></th>' : '') +
               '</tr>' +
             '</thead>' +
             '<tbody>';
 
         var rows = users.map(function(u) {
+          var actions = '';
+          if (canDelete && u.canDelete) {
+            actions = '<td><button class="btn btn-small" data-user-id="' + esc(u.id) + '">Delete</button></td>';
+          } else if (canDelete) {
+            actions = '<td></td>';
+          }
+
           return '<tr>' +
             '<td>' + esc(u.email) + '</td>' +
             '<td>' + esc(u.display_name || '') + '</td>' +
             '<td>' + esc(u.role) + '</td>' +
+            actions +
             '</tr>';
         }).join('');
 
@@ -186,7 +195,41 @@ router.get('/', (req, res) => {
 
             if (data.canViewUsers) {
               listSection.style.display = 'block';
-              renderUsers(users);
+              renderUsers(users, !!data.canDeleteUsers);
+
+              if (data.canDeleteUsers) {
+                var buttons = usersTableWrapper.querySelectorAll('button[data-user-id]');
+                buttons.forEach(function(btn) {
+                  btn.addEventListener('click', function() {
+                    var id = btn.getAttribute('data-user-id');
+                    if (!id) return;
+                    if (!window.confirm('Disable this user account? They will no longer be able to log in.')) {
+                      return;
+                    }
+
+                    fetch('/auth/users/' + encodeURIComponent(id), {
+                      method: 'DELETE',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'x-auth-token': authToken
+                      },
+                      body: JSON.stringify({ reason: 'Disabled via secure users UI' })
+                    })
+                      .then(function(resp) { return resp.json(); })
+                      .then(function(delData) {
+                        if (!delData || !delData.success) {
+                          window.alert((delData && delData.message) || 'Failed to disable user.');
+                          return;
+                        }
+                        loadUsers();
+                      })
+                      .catch(function(err) {
+                        console.error('Error disabling user:', err);
+                        window.alert('Error while disabling user.');
+                      });
+                  });
+                });
+              }
             } else {
               listSection.style.display = 'none';
               usersTableWrapper.innerHTML = '<p class="muted">You do not have permission to view users.</p>';

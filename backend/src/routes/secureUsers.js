@@ -223,8 +223,14 @@ router.get('/', (req, res) => {
 
       function isValidEmail(email) {
         var v = (email || '').trim();
-        // Basic email format: some text, an @, some text, a dot, some text
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+        // Very simple format check: must contain one @ and at least one dot
+        // after the @. We keep this permissive and let the backend enforce
+        // stricter rules if needed.
+        var atIndex = v.indexOf('@');
+        if (atIndex <= 0) return false;
+        var dotIndex = v.indexOf('.', atIndex + 1);
+        if (dotIndex === -1 || dotIndex >= v.length - 1) return false;
+        return true;
       }
 
       function renderUsers(users, canDelete) {

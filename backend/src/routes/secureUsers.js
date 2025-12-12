@@ -395,45 +395,44 @@ router.get('/', (req, res) => {
 
       if (changeTokenBtn) {
         changeTokenBtn.addEventListener('click', function() {
-          authToken = window.prompt('Enter auth token (x-auth-token) for user management page:') || '';
-          if (authToken) {
-            authToken = authToken.trim();
-            try {
-              window.localStorage.setItem('nc_auth_token', authToken);
-            } catch (e) {
-              console.error('Error storing token from change user:', e);
-            }
-          } else {
-            try {
-              window.localStorage.removeItem('nc_auth_token');
-              window.localStorage.removeItem('nc_auth_user');
-            } catch (e) {
-              console.error('Error clearing auth from localStorage:', e);
-            }
+          // Treat this button purely as "logout" from the secure-users page.
+          authToken = '';
+          try {
+            window.localStorage.removeItem('nc_auth_token');
+            window.localStorage.removeItem('nc_auth_user');
+          } catch (e) {
+            console.error('Error clearing auth from localStorage:', e);
           }
-          loadUsers();
+
+          currentUserInfo.textContent = '';
+          accessNote.textContent = 'You are logged out for user management. Please sign in again on the secure dashboard, then reopen this page.';
+          createSection.style.display = 'none';
+          listSection.style.display = 'none';
+          if (auditSection) {
+            auditSection.style.display = 'none';
+          }
         });
       }
 
-      // On first load, reuse token from localStorage if possible, otherwise prompt once.
+      // On first load, reuse token from localStorage if possible.
       try {
         authToken = window.localStorage.getItem('nc_auth_token') || '';
       } catch (e) {
         console.error('Error reading auth token from localStorage:', e);
         authToken = '';
       }
-      if (!authToken) {
-        authToken = window.prompt('Enter auth token (x-auth-token) for user management page:') || '';
-        if (authToken) {
-          authToken = authToken.trim();
-          try {
-            window.localStorage.setItem('nc_auth_token', authToken);
-          } catch (e) {
-            console.error('Error storing token from prompt:', e);
-          }
+
+      if (authToken) {
+        loadUsers();
+      } else {
+        accessNote.textContent = 'Please sign in on the secure dashboard first. Once logged in, reopen this page to manage users.';
+        currentUserInfo.textContent = '';
+        createSection.style.display = 'none';
+        listSection.style.display = 'none';
+        if (auditSection) {
+          auditSection.style.display = 'none';
         }
       }
-      loadUsers();
     })();
   </script>
 </body>

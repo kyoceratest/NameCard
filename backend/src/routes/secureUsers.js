@@ -406,13 +406,8 @@ router.get('/', (req, res) => {
             console.error('Error clearing auth from localStorage:', e);
           }
 
-          currentUserInfo.textContent = '';
-          accessNote.textContent = 'You are logged out for user management. Please sign in again on the secure dashboard, then reopen this page.';
-          createSection.style.display = 'none';
-          listSection.style.display = 'none';
-          if (auditSection) {
-            auditSection.style.display = 'none';
-          }
+          // After logout, always send the user back to the main secure dashboard login.
+          window.location.href = '/secure-dashboard';
         });
       }
 
@@ -427,13 +422,8 @@ router.get('/', (req, res) => {
       if (authToken) {
         loadUsers();
       } else {
-        accessNote.textContent = 'Please sign in on the secure dashboard first. Once logged in, reopen this page to manage users.';
-        currentUserInfo.textContent = '';
-        createSection.style.display = 'none';
-        listSection.style.display = 'none';
-        if (auditSection) {
-          auditSection.style.display = 'none';
-        }
+        // No token: redirect straight to the secure dashboard login.
+        window.location.href = '/secure-dashboard';
       }
     })();
   </script>

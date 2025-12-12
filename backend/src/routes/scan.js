@@ -61,7 +61,8 @@ router.get('/', async (req, res) => {
   <style>
     body { margin:0; padding:1.5rem; font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#f7eee7; }
     .page { max-width: 720px; margin: 0 auto; }
-    .brand { font-weight:600; letter-spacing:0.12em; font-size:0.8rem; color:#b66b4d; text-transform:uppercase; margin-bottom:0.75rem; }
+    .brand { display:flex; align-items:center; gap:0.5rem; font-weight:600; letter-spacing:0.12em; font-size:0.8rem; color:#b66b4d; text-transform:uppercase; margin-bottom:0.75rem; }
+    .brand img { display:block; }
     .card { background:#ffffff; border-radius:24px; padding:1.75rem 2rem; box-shadow:0 18px 45px rgba(0,0,0,0.08); }
     .card-header { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1.25rem; }
     .logo-circle { width:44px; height:44px; border-radius:50%; background:#f2e3d8; display:flex; align-items:center; justify-content:center; font-size:1.1rem; color:#b66b4d; font-weight:600; }
@@ -86,7 +87,11 @@ router.get('/', async (req, res) => {
 </head>
 <body>
   <main class="page">
-    <div class="brand">Cœur Du Ciel · Digital NameCard</div>
+    <div class="brand">
+      <img src="/image/logoCDC.png" alt="CDC logo" style="height:26px; border-radius:4px;" />
+      <img src="/image/nom.png" alt="Cœur Du Ciel" style="height:20px;" />
+      <span>Digital NameCard</span>
+    </div>
     <section class="card">
       <div class="card-header">
         <div class="logo-circle">☘</div>

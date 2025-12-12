@@ -30,9 +30,9 @@ router.get('/', async (req, res) => {
   }
 
   try {
-    // First get user's tenant_id from the users table
+    // First get user's tenant_id and role from the users table
     const userResult = await pool.query(
-      'SELECT tenant_id FROM users WHERE id = $1',
+      'SELECT tenant_id, role FROM users WHERE id = $1',
       [req.user.id]
     );
 
@@ -43,32 +43,57 @@ router.get('/', async (req, res) => {
       });
     }
 
-    const tenantId = userResult.rows[0].tenant_id;
+    const dbUser = userResult.rows[0];
+    const tenantId = dbUser.tenant_id;
+    const role = dbUser.role || req.user.role;
 
-    // Get scans only for cards that belong to the user's tenant
-    const result = await pool.query(
-      `SELECT
-         s.id,
-         s.card_id,
-         s.source,
-         s.scan_meta,
-         s.created_at,
-         c.first_name,
-         c.last_name,
-         c.company,
-         c.email,
-         c.mobile
-       FROM scans s
-       JOIN cards c ON c.id = s.card_id
-       WHERE c.tenant_id = $1
-       ORDER BY s.created_at DESC
-       LIMIT 100`,
-      [tenantId]
-    );
+    let result;
+
+    if (role === 'cdc_admin') {
+      // CDC admin: see all scans across all tenants
+      result = await pool.query(
+        `SELECT
+           s.id,
+           s.card_id,
+           s.source,
+           s.scan_meta,
+           s.created_at,
+           c.first_name,
+           c.last_name,
+           c.company,
+           c.email,
+           c.mobile
+         FROM scans s
+         JOIN cards c ON c.id = s.card_id
+         ORDER BY s.created_at DESC
+         LIMIT 100`
+      );
+    } else {
+      // Non-CDC roles: restrict to their own tenant
+      result = await pool.query(
+        `SELECT
+           s.id,
+           s.card_id,
+           s.source,
+           s.scan_meta,
+           s.created_at,
+           c.first_name,
+           c.last_name,
+           c.company,
+           c.email,
+           c.mobile
+         FROM scans s
+         JOIN cards c ON c.id = s.card_id
+         WHERE c.tenant_id = $1
+         ORDER BY s.created_at DESC
+         LIMIT 100`,
+        [tenantId]
+      );
+    }
 
     res.json({
       success: true,
-      tenant_id: tenantId, // For debugging
+      tenant_id: tenantId || null, // For debugging
       user: req.user,
       scans: result.rows
     });

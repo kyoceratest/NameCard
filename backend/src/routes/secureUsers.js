@@ -221,6 +221,12 @@ router.get('/', (req, res) => {
         return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
       }
 
+      function isValidEmail(email) {
+        var v = (email || '').trim();
+        // Basic email format: some text, an @, some text, a dot, some text
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
+      }
+
       function renderUsers(users, canDelete) {
         if (!users || !users.length) {
           usersTableWrapper.innerHTML = '<p class="muted">No users found for this tenant.</p>';
@@ -674,6 +680,11 @@ router.get('/', (req, res) => {
 
         if (!email || !password || !role) {
           setStatus(createStatus, 'Please fill email, password and role.', 'error');
+          return;
+        }
+
+        if (!isValidEmail(email)) {
+          setStatus(createStatus, 'Please enter a valid email address (example: name@example.com).', 'error');
           return;
         }
 

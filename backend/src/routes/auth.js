@@ -20,13 +20,21 @@ router.post('/login', async (req, res) => {
     });
   }
 
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide a valid email address.'
+    });
+  }
+
   try {
     const result = await pool.query(
       `SELECT id, tenant_id, email, password_hash, role, display_name
        FROM users
        WHERE email = $1
          AND (is_active IS NULL OR is_active = true)`,
-      [email.toLowerCase()]
+      [normalizedEmail]
     );
 
     if (result.rowCount === 0) {
@@ -504,6 +512,14 @@ router.post('/users', async (req, res) => {
     });
   }
 
+  const normalizedEmail = String(email).trim().toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please provide a valid email address.'
+    });
+  }
+
   try {
     const meResult = await pool.query(
       'SELECT id, tenant_id, role FROM users WHERE id = $1',
@@ -520,7 +536,6 @@ router.post('/users', async (req, res) => {
     const me = meResult.rows[0];
 
     let targetTenantId = null;
-    const normalizedEmail = email.toLowerCase();
 
     if (me.role === 'cdc_admin') {
       // CDC admin can choose tenant and role (but not create cdc_admin via this route)

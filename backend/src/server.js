@@ -25,7 +25,8 @@ app.use(cors());
 app.use(express.json());
 
 // Serve shared images (e.g. logos) from the NameCard/image folder
-const imageDir = path.resolve(__dirname, '../image');
+// __dirname here is backend/src, so go two levels up to reach NameCard/image
+const imageDir = path.resolve(__dirname, '../../image');
 app.use('/image', express.static(imageDir));
 
 app.get('/health', (req, res) => {

@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cardsRouter from './routes/cards.js';
 import scanRouter from './routes/scan.js';
 import dashboardRouter from './routes/dashboard.js';
@@ -15,8 +17,16 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+// Resolve __dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 app.use(cors());
 app.use(express.json());
+
+// Serve shared images (e.g. logos) from the NameCard/image folder
+const imageDir = path.resolve(__dirname, '../image');
+app.use('/image', express.static(imageDir));
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

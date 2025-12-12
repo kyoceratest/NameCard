@@ -148,7 +148,7 @@ router.get('/', (req, res) => {
             '<thead>' +
               '<tr>' +
                 '<th>Email</th>' +
-                '<th>Tenant</th>' +
+                '<th>Company</th>' +
                 '<th>Display name</th>' +
                 '<th>Role</th>' +
                 '<th>Status</th>' +

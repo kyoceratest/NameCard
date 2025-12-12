@@ -141,6 +141,7 @@ router.get('/', (req, res) => {
             '<thead>' +
               '<tr>' +
                 '<th>Email</th>' +
+                '<th>Tenant</th>' +
                 '<th>Display name</th>' +
                 '<th>Role</th>' +
                 '<th>Status</th>' +
@@ -164,6 +165,7 @@ router.get('/', (req, res) => {
 
           return '<tr>' +
             '<td>' + esc(u.email) + '</td>' +
+            '<td>' + esc(u.tenant_name || '') + '</td>' +
             '<td>' + esc(u.display_name || '') + '</td>' +
             '<td>' + esc(u.role) + '</td>' +
             '<td>' + esc(statusText) + '</td>' +

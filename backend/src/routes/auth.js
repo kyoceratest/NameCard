@@ -177,6 +177,7 @@ function mapUserRow(row) {
   return {
     id: row.id,
     tenant_id: row.tenant_id,
+    tenant_name: row.tenant_name,
     email: row.email,
     role: row.role,
     display_name: row.display_name,
@@ -210,7 +211,15 @@ router.get('/users/me', async (req, res) => {
 
   try {
     const meResult = await pool.query(
-      'SELECT id, tenant_id, email, role, display_name FROM users WHERE id = $1',
+      `SELECT u.id,
+              u.tenant_id,
+              u.email,
+              u.role,
+              u.display_name,
+              t.name AS tenant_name
+         FROM users u
+         LEFT JOIN tenants t ON t.id = u.tenant_id
+        WHERE u.id = $1`,
       [userId]
     );
 
@@ -231,7 +240,16 @@ router.get('/users/me', async (req, res) => {
     if (me.role === 'cdc_admin') {
       // CDC admin: can see all users, can create tenant_admin/manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name, is_active FROM users ORDER BY email'
+        `SELECT u.id,
+                u.tenant_id,
+                t.name AS tenant_name,
+                u.email,
+                u.role,
+                u.display_name,
+                u.is_active
+           FROM users u
+           LEFT JOIN tenants t ON t.id = u.tenant_id
+          ORDER BY u.email`
       );
       canViewUsers = true;
       canDeleteUsers = true;
@@ -243,7 +261,17 @@ router.get('/users/me', async (req, res) => {
     } else if (me.role === 'tenant_admin') {
       // Tenant admin: can see only their tenant users, can create manager/employee
       usersResult = await pool.query(
-        'SELECT id, tenant_id, email, role, display_name, is_active FROM users WHERE tenant_id = $1 ORDER BY email',
+        `SELECT u.id,
+                u.tenant_id,
+                t.name AS tenant_name,
+                u.email,
+                u.role,
+                u.display_name,
+                u.is_active
+           FROM users u
+           LEFT JOIN tenants t ON t.id = u.tenant_id
+          WHERE u.tenant_id = $1
+          ORDER BY u.email`,
         [me.tenant_id]
       );
       canViewUsers = true;

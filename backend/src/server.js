@@ -10,6 +10,7 @@ import authRouter from './routes/auth.js';
 import secureScansRouter from './routes/secureScans.js';
 import secureDashboardRouter from './routes/secureDashboard.js';
 import secureUsersRouter from './routes/secureUsers.js';
+import secureCardsRouter from './routes/secureCards.js';
 import { initDb } from './db.js';
 
 dotenv.config();
@@ -40,6 +41,7 @@ app.use('/scan', scanRouter);
 app.use('/dashboard', dashboardRouter);
 app.use('/secure-dashboard', secureDashboardRouter);
 app.use('/secure-users', secureUsersRouter);
+app.use('/secure-cards', secureCardsRouter);
 
 initDb()
   .then(() => {

@@ -32,9 +32,41 @@ router.post('/', async (req, res) => {
     });
   }
 
-  const baseScanUrl = process.env.PUBLIC_SCAN_BASE_URL || 'http://localhost:4000/scan';
-
   try {
+    // If an auth token is present, try to resolve the calling user and use
+    // their tenant_id for this card. This is what will be used by the
+    // secure business builder so scans can be filtered per company.
+    let finalTenantId = tenantId || null;
+
+    const authHeader = req.header('x-auth-token');
+    const token = authHeader && authHeader.trim();
+
+    if (token) {
+      const [userIdPart] = token.split(':');
+      const userId = parseInt(userIdPart, 10);
+
+      if (Number.isFinite(userId)) {
+        try {
+          const meResult = await pool.query(
+            'SELECT id, tenant_id FROM users WHERE id = $1',
+            [userId]
+          );
+
+          if (meResult.rowCount > 0) {
+            const me = meResult.rows[0];
+            if (me.tenant_id != null) {
+              finalTenantId = me.tenant_id;
+            }
+          }
+        } catch (authErr) {
+          console.error('Error resolving tenant for /api/cards:', authErr);
+          // Continue without tenant rather than failing card creation.
+        }
+      }
+    }
+
+    const baseScanUrl = process.env.PUBLIC_SCAN_BASE_URL || 'http://localhost:4000/scan';
+
     const publicToken = generatePublicToken();
 
     const result = await pool.query(
@@ -51,9 +83,10 @@ router.post('/', async (req, res) => {
         address_city,
         address_region,
         address_zip_country,
-        details_json
+        details_json,
+        tenant_id
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
       ) RETURNING id, public_token`,
       [
         publicToken,
@@ -68,19 +101,20 @@ router.post('/', async (req, res) => {
         city || null,
         region || null,
         zipCountry || null,
-        details ? JSON.stringify(details) : null
+        details ? JSON.stringify(details) : null,
+        finalTenantId
       ]
     );
 
     const row = result.rows[0];
-    const token = row.public_token;
-    const scanUrl = `${baseScanUrl}?t=${encodeURIComponent(token)}`;
+    const publicTokenValue = row.public_token;
+    const scanUrl = `${baseScanUrl}?t=${encodeURIComponent(publicTokenValue)}`;
 
     res.json({
       success: true,
       card: {
         id: row.id,
-        publicToken: token,
+        publicToken: publicTokenValue,
         scanUrl,
         firstName,
         lastName,
@@ -94,7 +128,7 @@ router.post('/', async (req, res) => {
         city,
         region,
         zipCountry,
-        tenantId: tenantId || null,
+        tenantId: finalTenantId || null,
         details: details || null
       }
     });

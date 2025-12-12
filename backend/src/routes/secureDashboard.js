@@ -69,8 +69,9 @@ router.get('/', (_req, res) => {
           <h2 style="font-size:1rem; margin:0 0 0.25rem 0; color:#333;">Recent scans (secure)</h2>
           <p id="userInfo" class="muted" style="margin:0;"></p>
         </div>
-        <div style="display:flex; gap:0.4rem;">
+        <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
           <button id="refreshBtn" class="btn">Refresh</button>
+          <button id="openCardsBtn" class="btn">Create NameCard</button>
           <button id="signOutBtn" class="btn" style="border-color:#aa3d3d; color:#aa3d3d;">Sign out</button>
         </div>
       </div>
@@ -115,6 +116,7 @@ router.get('/', (_req, res) => {
       const scansTableWrapper = document.getElementById('scansTableWrapper');
       const userInfo = document.getElementById('userInfo');
       const refreshBtn = document.getElementById('refreshBtn');
+      const openCardsBtn = document.getElementById('openCardsBtn');
       const signOutBtn = document.getElementById('signOutBtn');
       const statsRow = document.getElementById('statsRow');
       const filterText = document.getElementById('filterText');
@@ -384,6 +386,12 @@ router.get('/', (_req, res) => {
       refreshBtn.addEventListener('click', function() {
         fetchScans();
       });
+
+      if (openCardsBtn) {
+        openCardsBtn.addEventListener('click', function() {
+          window.open('/secure-cards', '_blank');
+        });
+      }
 
       if (filterText) {
         filterText.addEventListener('input', function() {

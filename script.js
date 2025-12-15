@@ -277,6 +277,23 @@
             if (zipCountryInput) zipCountryInput.value = data.zipCountry || '';
 
             if ((!data.street && !data.city && !data.region && !data.zipCountry) && data.address) {
+                var legacyLines = String(data.address).split(/\r?\n/);
+                if (streetInput && legacyLines[0] != null) streetInput.value = legacyLines[0];
+                if (cityInput && legacyLines[1] != null) cityInput.value = legacyLines[1];
+                if (regionInput && legacyLines[2] != null) regionInput.value = legacyLines[2];
+                if (zipCountryInput && legacyLines[3] != null) zipCountryInput.value = legacyLines[3];
+            }
+
+            updatePreview();
+
+            // Do not auto-generate an offline vCard QR on restore.
+            // The QR will be generated only after creating the online card via /api/cards.
+
+            lastSavedPayload = JSON.stringify(data);
+            setAutosaveStatus('Restored last version');
+        } catch (e) {
+            // ignore parse errors
+        }
     }
 
     form.addEventListener('submit', function (e) {

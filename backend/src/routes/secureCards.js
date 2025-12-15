@@ -156,15 +156,12 @@ router.get('/', (_req, res) => {
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="section" id="result-section" style="display:none;">
-      <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link &amp; QR</h2>
-      <p class="muted">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
-      <div class="qr-section" style="margin-top:0.75rem;">
-        <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
-        <div id="qrBox" class="qr-box"></div>
+        <div class="qr-section" id="qr-panel" style="display:none;">
+          <h2 style="font-size:1rem; margin:0 0 0.4rem 0; color:#333;">Scan link &amp; QR</h2>
+          <p class="muted" style="margin:0 0 0.5rem 0;">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
+          <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
+          <div id="qrBox" class="qr-box"></div>
+        </div>
       </div>
     </section>
   </main>
@@ -175,7 +172,7 @@ router.get('/', (_req, res) => {
       var accessInfo = document.getElementById('accessInfo');
       var formSection = document.getElementById('form-section');
       var previewSection = document.getElementById('preview-section');
-      var resultSection = document.getElementById('result-section');
+      var qrPanel = document.getElementById('qr-panel');
       var cardForm = document.getElementById('card-form');
       var createCardBtn = document.getElementById('createCardBtn');
       var backToDashboardBtn = document.getElementById('backToDashboardBtn');
@@ -300,19 +297,32 @@ router.get('/', (_req, res) => {
 
         var emailDisplay = email || 'name@example.com';
 
-        var addressParts = [];
-        if (street) addressParts.push(street);
-        var cityLine = '';
-        if (city) cityLine += city;
-        if (zipCountry) {
-          cityLine += (cityLine ? ' ' : '') + zipCountry;
+        var addressDisplay;
+        if (street || city || region || zipCountry) {
+          var line1 = street || '';
+          var line2 = '';
+          if (city) {
+            line2 += city;
+          }
+          if (zipCountry) {
+            line2 += (line2 ? ' ' : '') + zipCountry;
+          }
+          if (region) {
+            line2 += (line2 ? ', ' : '') + region;
+          }
+          addressDisplay = '';
+          if (line1) {
+            addressDisplay += line1;
+          }
+          if (line2) {
+            addressDisplay += (addressDisplay ? '\n' : '') + line2;
+          }
+          if (!addressDisplay) {
+            addressDisplay = 'Address will appear here';
+          }
+        } else {
+          addressDisplay = 'Address will appear here';
         }
-        if (region) {
-          cityLine += (cityLine ? ', ' : '') + region;
-        }
-        if (cityLine) addressParts.push(cityLine);
-        // Join address parts with a comma+space to avoid any newline escaping issues.
-        var addressDisplay = addressParts.length ? addressParts.join(', ') : 'Address will appear here';
 
         designNameEl.textContent = nameDisplay;
         designCompanyEl.textContent = companyDisplay;
@@ -341,7 +351,7 @@ router.get('/', (_req, res) => {
           accessInfo.textContent = 'You are not signed in. Use the secure dashboard login first, then return here. You will be redirected now.';
           formSection.style.display = 'none';
           if (previewSection) previewSection.style.display = 'none';
-          resultSection.style.display = 'none';
+          if (qrPanel) qrPanel.style.display = 'none';
           setTimeout(function() {
             window.location.href = '/secure-dashboard';
           }, 1500);
@@ -364,7 +374,7 @@ router.get('/', (_req, res) => {
           accessInfo.textContent = 'Your role (' + role + ') does not allow creating NameCards. Please contact your administrator.';
           formSection.style.display = 'none';
           if (previewSection) previewSection.style.display = 'none';
-          resultSection.style.display = 'none';
+          if (qrPanel) qrPanel.style.display = 'none';
         }
       }
 
@@ -440,7 +450,7 @@ router.get('/', (_req, res) => {
               var scanUrl = data.card.scanUrl;
               scanUrlText.textContent = scanUrl;
               renderQr(scanUrl);
-              resultSection.style.display = 'block';
+              if (qrPanel) qrPanel.style.display = 'block';
               setStatus('Card created.', 'ok');
             })
             .catch(function(err) {

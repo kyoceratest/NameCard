@@ -162,38 +162,9 @@ router.get('/', (_req, res) => {
     <section class="section" id="result-section" style="display:none;">
       <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link &amp; QR</h2>
       <p class="muted">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
-      <div class="output-section">
-        <div class="card-column">
-          <div id="cardPreview" class="design-card" style="max-width:560px; width:100%;">
-            <div class="design-text-block">
-              <div class="design-header-row">
-                <img src="/image/logoCDC.png" alt="CDC" class="design-logo" />
-                <div class="design-header-text">
-                  <div class="design-company" id="designCompany">Company</div>
-                </div>
-              </div>
-              <div class="design-name" id="designName">Your Name</div>
-              <div class="design-name-line"></div>
-              <div class="design-position" id="designPosition">Post / Position</div>
-              <div class="design-contact-row">
-                <span class="design-contact-icon">☎</span>
-                <span class="design-line" id="designPhones">+00 0000000000</span>
-              </div>
-              <div class="design-contact-row">
-                <span class="design-contact-icon">✉</span>
-                <span class="design-line" id="designEmail">name@example.com</span>
-              </div>
-              <div class="design-contact-row">
-                <span class="design-contact-icon">📍</span>
-                <span class="design-line" id="designAddress">Address will appear here</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="qr-section">
-          <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
-          <div id="qrBox" class="qr-box"></div>
-        </div>
+      <div class="qr-section" style="margin-top:0.75rem;">
+        <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
+        <div id="qrBox" class="qr-box"></div>
       </div>
     </section>
   </main>
@@ -234,6 +205,8 @@ router.get('/', (_req, res) => {
       var authToken = '';
       var currentUser = null;
 
+      var AUTOSAVE_KEY = 'nc_secure_card_draft';
+
       function setStatus(message, type) {
         createStatus.textContent = message || '';
         createStatus.className = 'status' + (type ? ' ' + type : '');
@@ -252,6 +225,50 @@ router.get('/', (_req, res) => {
           });
         } catch (e) {
           qrBox.textContent = 'Unable to generate QR code.';
+        }
+      }
+
+      function saveDraft() {
+        try {
+          var data = {
+            firstName: (firstNameInput && firstNameInput.value) || '',
+            lastName: (lastNameInput && lastNameInput.value) || '',
+            mobile: (mobileInput && mobileInput.value) || '',
+            office: (officeInput && officeInput.value) || '',
+            company: (companyInput && companyInput.value) || '',
+            position: (positionInput && positionInput.value) || '',
+            email: (emailInput && emailInput.value) || '',
+            street: (addressStreetInput && addressStreetInput.value) || '',
+            city: (addressCityInput && addressCityInput.value) || '',
+            region: (addressRegionInput && addressRegionInput.value) || '',
+            zipCountry: (addressZipCountryInput && addressZipCountryInput.value) || ''
+          };
+          window.localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+        } catch (e) {
+          // ignore autosave errors
+        }
+      }
+
+      function restoreDraft() {
+        try {
+          var raw = window.localStorage.getItem(AUTOSAVE_KEY);
+          if (!raw) return;
+          var data = JSON.parse(raw);
+          if (!data || typeof data !== 'object') return;
+
+          if (firstNameInput) firstNameInput.value = data.firstName || '';
+          if (lastNameInput) lastNameInput.value = data.lastName || '';
+          if (mobileInput) mobileInput.value = data.mobile || '';
+          if (officeInput) officeInput.value = data.office || '';
+          if (companyInput) companyInput.value = data.company || '';
+          if (positionInput) positionInput.value = data.position || '';
+          if (emailInput) emailInput.value = data.email || '';
+          if (addressStreetInput) addressStreetInput.value = data.street || '';
+          if (addressCityInput) addressCityInput.value = data.city || '';
+          if (addressRegionInput) addressRegionInput.value = data.region || '';
+          if (addressZipCountryInput) addressZipCountryInput.value = data.zipCountry || '';
+        } catch (e) {
+          // ignore restore errors
         }
       }
 
@@ -340,6 +357,7 @@ router.get('/', (_req, res) => {
           }
           formSection.style.display = 'block';
           if (previewSection) previewSection.style.display = 'block';
+          restoreDraft();
           updatePreview();
         } else {
           accessInfo.textContent = 'Your role (' + role + ') does not allow creating NameCards. Please contact your administrator.';
@@ -450,6 +468,7 @@ router.get('/', (_req, res) => {
         if (!el) return;
         el.addEventListener('input', function() {
           updatePreview();
+          saveDraft();
         });
       });
 

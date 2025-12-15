@@ -26,7 +26,26 @@ router.get('/', (_req, res) => {
     .status.error { color:#b00020; }
     .status.ok { color:#2f7a39; }
     .muted { font-size:0.8rem; color:#777; }
-    .qr-box { width:256px; height:256px; display:flex; align-items:center; justify-content:center; background:#fff; border-radius:16px; box-shadow:0 12px 30px rgba(0,0,0,0.06); margin-top:0.5rem; }
+    .output-section { display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:2rem; align-items:flex-start; margin-top:1.25rem; }
+    .card-column { display:flex; flex-direction:column; align-items:flex-start; }
+    .qr-section { background:#f9f3ec; border-radius:12px; padding:1.5rem; box-shadow:0 12px 30px rgba(0,0,0,0.06); text-align:center; }
+    .qr-box { display:inline-block; background:#fff; padding:1.5rem; border-radius:12px; margin-top:1rem; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    .design-card { position:relative; border-radius:12px; overflow:hidden; box-shadow:0 12px 30px rgba(0,0,0,0.06); background:url('/image/cdcNC.png') center/cover no-repeat; min-height:260px; }
+    .design-text-block { position:relative; padding:1.75rem 2.5rem; max-width:60%; }
+    .design-name { font-size:1.6rem; font-weight:700; margin-bottom:0.35rem; color:#b66b4d; }
+    .design-company { color:#333; font-weight:600; margin-bottom:0.9rem; }
+    .design-position { font-size:1rem; font-style:italic; margin-bottom:0.6rem; color:#b66b4d; }
+    .design-name-line { width:260px; height:2px; background-color:#221815; margin:0.2rem 0 0.5rem; }
+    .design-line { font-size:0.95rem; margin-bottom:0.4rem; color:#b66b4d; white-space:pre-wrap; word-wrap:break-word; }
+    #designAddress { white-space:pre; font-size:0.75rem; color:#b66b4d; line-height:1.1; }
+    .design-contact-row { display:flex; align-items:center; justify-content:flex-start; gap:0.75rem; margin-bottom:0.5rem; }
+    .design-contact-icon { width:34px; height:34px; border-radius:50%; background-color:#221815; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:1.25rem; }
+    .design-header-row { display:flex; align-items:flex-start; gap:1rem; margin-bottom:0.75rem; }
+    .design-header-text { flex:1; text-align:left; }
+    .design-logo { max-width:48px; height:auto; margin-bottom:0; display:block; }
+    @media (max-width: 768px) {
+      .design-text-block { max-width:100%; padding:1.5rem 1.5rem 1.75rem; }
+    }
   </style>
 </head>
 <body>
@@ -107,11 +126,75 @@ router.get('/', (_req, res) => {
       </form>
     </section>
 
+    <section class="section" id="preview-section" style="display:none;">
+      <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Live preview</h2>
+      <div class="output-section">
+        <div class="card-column">
+          <div id="cardPreview" class="design-card" style="max-width:560px; width:100%;">
+            <div class="design-text-block">
+              <div class="design-header-row">
+                <img src="/image/logoCDC.png" alt="CDC" class="design-logo" />
+                <div class="design-header-text">
+                  <div class="design-company" id="designCompany">Company</div>
+                </div>
+              </div>
+              <div class="design-name" id="designName">Your Name</div>
+              <div class="design-name-line"></div>
+              <div class="design-position" id="designPosition">Post / Position</div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">☎</span>
+                <span class="design-line" id="designPhones">+00 0000000000</span>
+              </div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">✉</span>
+                <span class="design-line" id="designEmail">name@example.com</span>
+              </div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">📍</span>
+                <span class="design-line" id="designAddress">Address will appear here</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="result-section" style="display:none;">
-      <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link</h2>
+      <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link &amp; QR</h2>
       <p class="muted">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
-      <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all;"></p>
-      <div id="qrBox" class="qr-box"></div>
+      <div class="output-section">
+        <div class="card-column">
+          <div id="cardPreview" class="design-card" style="max-width:560px; width:100%;">
+            <div class="design-text-block">
+              <div class="design-header-row">
+                <img src="/image/logoCDC.png" alt="CDC" class="design-logo" />
+                <div class="design-header-text">
+                  <div class="design-company" id="designCompany">Company</div>
+                </div>
+              </div>
+              <div class="design-name" id="designName">Your Name</div>
+              <div class="design-name-line"></div>
+              <div class="design-position" id="designPosition">Post / Position</div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">☎</span>
+                <span class="design-line" id="designPhones">+00 0000000000</span>
+              </div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">✉</span>
+                <span class="design-line" id="designEmail">name@example.com</span>
+              </div>
+              <div class="design-contact-row">
+                <span class="design-contact-icon">📍</span>
+                <span class="design-line" id="designAddress">Address will appear here</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="qr-section">
+          <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
+          <div id="qrBox" class="qr-box"></div>
+        </div>
+      </div>
     </section>
   </main>
 
@@ -120,6 +203,7 @@ router.get('/', (_req, res) => {
     (function() {
       var accessInfo = document.getElementById('accessInfo');
       var formSection = document.getElementById('form-section');
+      var previewSection = document.getElementById('preview-section');
       var resultSection = document.getElementById('result-section');
       var cardForm = document.getElementById('card-form');
       var createCardBtn = document.getElementById('createCardBtn');
@@ -139,6 +223,13 @@ router.get('/', (_req, res) => {
       var addressCityInput = document.getElementById('addressCity');
       var addressRegionInput = document.getElementById('addressRegion');
       var addressZipCountryInput = document.getElementById('addressZipCountry');
+
+      var designNameEl = document.getElementById('designName');
+      var designCompanyEl = document.getElementById('designCompany');
+      var designPositionEl = document.getElementById('designPosition');
+      var designPhonesEl = document.getElementById('designPhones');
+      var designEmailEl = document.getElementById('designEmail');
+      var designAddressEl = document.getElementById('designAddress');
 
       var authToken = '';
       var currentUser = null;
@@ -164,6 +255,55 @@ router.get('/', (_req, res) => {
         }
       }
 
+      function updatePreview() {
+        if (!designNameEl || !designCompanyEl || !designPositionEl || !designPhonesEl || !designEmailEl || !designAddressEl) {
+          return;
+        }
+
+        var firstName = (firstNameInput && firstNameInput.value || '').trim();
+        var lastName = (lastNameInput && lastNameInput.value || '').trim();
+        var company = (companyInput && companyInput.value || '').trim();
+        var position = (positionInput && positionInput.value || '').trim();
+        var mobile = (mobileInput && mobileInput.value || '').trim();
+        var office = (officeInput && officeInput.value || '').trim();
+        var email = (emailInput && emailInput.value || '').trim();
+        var street = (addressStreetInput && addressStreetInput.value || '').trim();
+        var city = (addressCityInput && addressCityInput.value || '').trim();
+        var region = (addressRegionInput && addressRegionInput.value || '').trim();
+        var zipCountry = (addressZipCountryInput && addressZipCountryInput.value || '').trim();
+
+        var nameDisplay = (firstName || lastName) ? (firstName + (firstName && lastName ? ' ' : '') + lastName) : 'Your Name';
+        var companyDisplay = company || 'Company';
+        var positionDisplay = position || 'Post / Position';
+
+        var phones = [];
+        if (mobile) phones.push(mobile);
+        if (office) phones.push(office);
+        var phonesDisplay = phones.length ? phones.join(' / ') : '+00 0000000000';
+
+        var emailDisplay = email || 'name@example.com';
+
+        var addressParts = [];
+        if (street) addressParts.push(street);
+        var cityLine = '';
+        if (city) cityLine += city;
+        if (zipCountry) {
+          cityLine += (cityLine ? ' ' : '') + zipCountry;
+        }
+        if (region) {
+          cityLine += (cityLine ? ', ' : '') + region;
+        }
+        if (cityLine) addressParts.push(cityLine);
+        var addressDisplay = addressParts.length ? addressParts.join('\n') : 'Address will appear here';
+
+        designNameEl.textContent = nameDisplay;
+        designCompanyEl.textContent = companyDisplay;
+        designPositionEl.textContent = positionDisplay;
+        designPhonesEl.textContent = phonesDisplay;
+        designEmailEl.textContent = emailDisplay;
+        designAddressEl.textContent = addressDisplay;
+      }
+
       function loadAuth() {
         try {
           authToken = window.localStorage.getItem('nc_auth_token') || '';
@@ -182,6 +322,7 @@ router.get('/', (_req, res) => {
         if (!authToken || !currentUser) {
           accessInfo.textContent = 'You are not signed in. Use the secure dashboard login first, then return here. You will be redirected now.';
           formSection.style.display = 'none';
+          if (previewSection) previewSection.style.display = 'none';
           resultSection.style.display = 'none';
           setTimeout(function() {
             window.location.href = '/secure-dashboard';
@@ -198,9 +339,12 @@ router.get('/', (_req, res) => {
             accessInfo.textContent = 'Signed in as ' + (currentUser.displayName || currentUser.email || 'user') + ' (' + role + ').';
           }
           formSection.style.display = 'block';
+          if (previewSection) previewSection.style.display = 'block';
+          updatePreview();
         } else {
           accessInfo.textContent = 'Your role (' + role + ') does not allow creating NameCards. Please contact your administrator.';
           formSection.style.display = 'none';
+          if (previewSection) previewSection.style.display = 'none';
           resultSection.style.display = 'none';
         }
       }
@@ -287,6 +431,27 @@ router.get('/', (_req, res) => {
             });
         });
       }
+
+      var previewInputs = [
+        firstNameInput,
+        lastNameInput,
+        emailInput,
+        addressStreetInput,
+        addressCityInput,
+        addressRegionInput,
+        addressZipCountryInput,
+        mobileInput,
+        officeInput,
+        companyInput,
+        positionInput
+      ];
+
+      previewInputs.forEach(function(el) {
+        if (!el) return;
+        el.addEventListener('input', function() {
+          updatePreview();
+        });
+      });
 
       initAccess();
     })();

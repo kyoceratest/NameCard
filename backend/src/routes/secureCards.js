@@ -62,7 +62,7 @@ router.get('/', (_req, res) => {
       <p id="accessInfo" class="muted"></p>
     </section>
 
-    <section class="section" id="form-section" style="display:none;">
+    <section class="section" id="form-section">
       <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Create NameCard</h2>
       <form id="card-form">
         <div class="grid">
@@ -126,7 +126,7 @@ router.get('/', (_req, res) => {
       </form>
     </section>
 
-    <section class="section" id="preview-section" style="display:none;">
+    <section class="section" id="preview-section">
       <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Live preview</h2>
       <div class="output-section">
         <div class="card-column">

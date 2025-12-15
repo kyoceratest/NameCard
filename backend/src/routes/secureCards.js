@@ -311,8 +311,7 @@ router.get('/', (_req, res) => {
           cityLine += (cityLine ? ', ' : '') + region;
         }
         if (cityLine) addressParts.push(cityLine);
-        // Use "\\n" here so that the rendered client script contains a literal "\n",
-        // avoiding a real newline inside the JS string which would break the page.
+        // Join address lines with a literal backslash-n so the string keeps line breaks.
         var addressDisplay = addressParts.length ? addressParts.join('\\n') : 'Address will appear here';
 
         designNameEl.textContent = nameDisplay;

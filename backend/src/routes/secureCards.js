@@ -156,15 +156,12 @@ router.get('/', (_req, res) => {
             </div>
           </div>
         </div>
-      </div>
-    </section>
-
-    <section class="section" id="result-section" style="display:none;">
-      <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link &amp; QR</h2>
-      <p class="muted">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
-      <div class="qr-section" style="margin-top:0.75rem;">
-        <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
-        <div id="qrBox" class="qr-box"></div>
+        <section class="qr-section" id="result-section" style="display:none;">
+          <h2 style="font-size:1rem; margin:0 0 0.6rem 0; color:#333;">Scan link &amp; QR</h2>
+          <p class="muted">Share this link behind a QR code or short URL. Each scan will be logged in the secure dashboard.</p>
+          <p id="scanUrlText" style="font-size:0.85rem; word-break:break-all; margin-bottom:0.5rem;"></p>
+          <div id="qrBox" class="qr-box"></div>
+        </section>
       </div>
     </section>
   </main>

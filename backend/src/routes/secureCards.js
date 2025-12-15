@@ -311,8 +311,8 @@ router.get('/', (_req, res) => {
           cityLine += (cityLine ? ', ' : '') + region;
         }
         if (cityLine) addressParts.push(cityLine);
-        // Join address lines with a literal backslash-n so the string keeps line breaks.
-        var addressDisplay = addressParts.length ? addressParts.join('\\n') : 'Address will appear here';
+        // Join address parts with a comma+space to avoid any newline escaping issues.
+        var addressDisplay = addressParts.length ? addressParts.join(', ') : 'Address will appear here';
 
         designNameEl.textContent = nameDisplay;
         designCompanyEl.textContent = companyDisplay;

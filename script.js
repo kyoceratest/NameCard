@@ -43,7 +43,8 @@
             lines.push('TEL;TYPE=CELL,VOICE:' + mobile);
         }
         if (email) {
-            lines.push('EMAIL;TYPE=INTERNET:' + email);
+            // Mark email as WORK so phone contact apps show a company/work label instead of generic Internet
+            lines.push('EMAIL;TYPE=WORK:' + email);
         }
 
         lines.push('END:VCARD');
@@ -56,8 +57,8 @@
         try {
             qr = new QRCode(qrContainer, {
                 text: text,
-                width: 256,
-                height: 256,
+                width: 180,
+                height: 180,
                 // Use low error correction to reduce "code length overflow" for long vCards
                 correctLevel: QRCode.CorrectLevel.L
             });
@@ -65,6 +66,26 @@
             // If the QR library overflows, log it so the user can shorten the data
             console.error('Unable to generate QR code:', e && e.message ? e.message : e);
             qrContainer.innerHTML = '<p style="color:#b7695c;font-size:0.9rem;">QR too large. Try shortening address or removing optional fields.</p>';
+        }
+    }
+
+    function renderDirectVcardQRCode(data) {
+        var directContainer = document.getElementById('directQrcode');
+        if (!directContainer) return;
+
+        var vcardText = buildVCard(data);
+
+        directContainer.innerHTML = '';
+        try {
+            new QRCode(directContainer, {
+                text: vcardText,
+                width: 160,
+                height: 160,
+                correctLevel: QRCode.CorrectLevel.L
+            });
+        } catch (e) {
+            console.error('Unable to generate direct vCard QR code:', e && e.message ? e.message : e);
+            directContainer.innerHTML = '<p style="color:#b7695c;font-size:0.85rem;">Direct vCard QR too large. Try shortening optional fields.</p>';
         }
     }
 
@@ -357,14 +378,18 @@
         qrContainer.innerHTML = '<p style="font-size:0.9rem; color:#555;">Creating your online card…</p>';
 
         var requestBody = {
-            first_name: firstName,
-            last_name: lastName,
+            firstName: firstName,
+            lastName: lastName,
             mobile: mobile,
             office: office,
             company: company,
             position: position,
             email: email,
-            address: address
+            address: address,
+            street: streetVal,
+            city: cityVal,
+            region: regionVal,
+            zipCountry: zipCountryVal
         };
 
         fetch(NAMECARD_API_BASE + '/api/cards', {
@@ -404,14 +429,29 @@
             }
 
             return res.json().then(function (data) {
-                if (!data || !data.scanUrl) {
+                var card = data && data.card;
+                var scanUrl = card && card.scanUrl;
+
+                if (!scanUrl) {
                     alert('The server did not return a scan URL. Please try again later.');
                     qrContainer.innerHTML = '';
                     return;
                 }
 
-                // Generate QR from the online scan URL
-                renderQRCode(data.scanUrl);
+                // Generate main QR from the online scan URL (tracked scans)
+                renderQRCode(scanUrl);
+
+                // Persist the last scan URL so export.html can render an "Online" QR
+                try {
+                    if (window.localStorage) {
+                        window.localStorage.setItem('namecard_last_scanUrl', scanUrl);
+                    }
+                } catch (e) {
+                    // ignore storage errors
+                }
+
+                // Also generate a direct vCard QR for faster "Add to contacts" (not tracked)
+                renderDirectVcardQRCode(payload);
             });
         }).catch(function (err) {
             console.error('Error calling /api/cards:', err);
@@ -434,6 +474,43 @@
 
     updatePreview();
     restoreFromLocal();
+
+    // QR view toggle between online and vCard QR codes
+    var onlinePanel = document.getElementById('onlineQrPanel');
+    var vcardPanel = document.getElementById('vcardQrPanel');
+    var showOnlineBtn = document.getElementById('showOnlineQrBtn');
+    var showVcardBtn = document.getElementById('showVcardQrBtn');
+
+    function showOnlineQr() {
+        if (onlinePanel) onlinePanel.style.display = '';
+        if (vcardPanel) vcardPanel.style.display = 'none';
+
+        if (showOnlineBtn) showOnlineBtn.classList.add('active');
+        if (showVcardBtn) showVcardBtn.classList.remove('active');
+    }
+
+    function showVcardQr() {
+        if (onlinePanel) onlinePanel.style.display = 'none';
+        if (vcardPanel) vcardPanel.style.display = '';
+
+        if (showOnlineBtn) showOnlineBtn.classList.remove('active');
+        if (showVcardBtn) showVcardBtn.classList.add('active');
+    }
+
+    if (showOnlineBtn) {
+        showOnlineBtn.addEventListener('click', function () {
+            showOnlineQr();
+        });
+    }
+
+    if (showVcardBtn) {
+        showVcardBtn.addEventListener('click', function () {
+            showVcardQr();
+        });
+    }
+
+    // Default to online QR visible
+    showOnlineQr();
 
     // Navigation toggle functionality
     var navToggle = document.querySelector('.nav-toggle');

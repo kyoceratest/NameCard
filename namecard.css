@@ -247,6 +247,28 @@ button[type="submit"]:hover {
   text-decoration: underline;
 }
 
+.qr-toggle-link {
+  background: #ffffff;
+  border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.8rem;
+  margin-left: 0.25rem;
+  cursor: pointer;
+  color: var(--text-main);
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.qr-toggle-link:hover {
+  background: var(--bg-neutral);
+}
+
+.qr-toggle-link.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
+}
+
 .design-preview {
   margin: 3rem 0 4rem;
 }
@@ -432,7 +454,7 @@ button[type="submit"]:hover {
 .qr-section {
   background: var(--surface);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: var(--shadow-soft);
   text-align: center;
 }
@@ -440,10 +462,22 @@ button[type="submit"]:hover {
 .qr-box {
   display: inline-block;
   background: white;
-  padding: 1.5rem;
+  padding: 1rem;
   border-radius: 8px;
   margin-top: 1.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.qr-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.qr-col {
+  flex: 0 0 auto;
 }
 
 /* Responsive adjustments */

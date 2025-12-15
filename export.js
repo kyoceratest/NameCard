@@ -30,7 +30,8 @@
             lines.push('TEL;TYPE=CELL,VOICE:' + mobile);
         }
         if (email) {
-            lines.push('EMAIL;TYPE=INTERNET:' + email);
+            // Match main builder: use WORK so phones label this as a company/work email
+            lines.push('EMAIL;TYPE=WORK:' + email);
         }
 
         lines.push('END:VCARD');
@@ -139,14 +140,27 @@
         });
     }
 
+    function renderOnlineQRCodeText(vcardText) {
+        var qrContainer = document.getElementById('exportOnlineQr');
+        if (!qrContainer) return;
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+            text: vcardText,
+            width: 256,
+            height: 256,
+            correctLevel: QRCode.CorrectLevel.L
+        });
+    }
+
     function drawImageCard(data) {
-        var qrCanvas = document.querySelector('#exportQr canvas');
-        if (!qrCanvas) {
+        var qrCanvasPhone = document.querySelector('#exportQr canvas');
+        var qrCanvasOnline = document.querySelector('#exportOnlineQr canvas');
+        if (!qrCanvasPhone && !qrCanvasOnline) {
             return null;
         }
 
-        var width = 700;
-        var height = 900;
+        var width = 640;
+        var height = 1350;
         var canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -157,9 +171,9 @@
         ctx.fillRect(0, 0, width, height);
 
         // card background area using cdcNC.png
-        var cardX = 70;
-        var cardY = 80;
-        var cardW = width - 140;
+        var cardX = 40;           // smaller side margins
+        var cardY = 50;           // closer to top
+        var cardW = width - 80;   // keep card wide on canvas
         var cardH = 360;
 
         if (cardBgReady && cardBgImage) {
@@ -273,13 +287,75 @@
             }
         }
 
-        // QR area
-        var qrSize = 300;
-        var qrX = (width - qrSize) / 2;
-        var qrY = cardY + cardH + 60;
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect(qrX - 16, qrY - 16, qrSize + 32, qrSize + 32);
-        ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
+        // QR area: render Online and Phone QRs in two separate beige blocks
+        var qrSize = 320;
+        var centerX = width / 2;
+        var baseY = cardY + cardH + 60;
+
+        if (qrCanvasOnline && qrCanvasPhone) {
+            var blockX = cardX;                   // align with card
+            var blockWidth = cardW;               // same width as card
+            var firstBlockY = cardY + cardH + 20; // bring first QR block closer to card
+            var blockPadding = 18;                // inner padding inside beige block
+            var blockGap = 24;                    // gap between Online and Phone blocks
+
+            // --- Online block ---
+            var onlineBlockHeight = blockPadding * 2 + 16 + 8 + qrSize + 16; // label + gap + white box + bottom padding
+            var onlineBlockY = firstBlockY;
+            ctx.fillStyle = '#f1e3d4';            // beige background like page
+            ctx.fillRect(blockX, onlineBlockY, blockWidth, onlineBlockHeight);
+
+            // label (centered horizontally above QR)
+            ctx.fillStyle = '#b7695c';
+            ctx.font = '15px Montserrat, sans-serif';
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'center';
+            var onlineLabelX = blockX + blockWidth / 2;
+            var onlineLabelY = onlineBlockY + blockPadding;
+            ctx.fillText('QR code contact: Online', onlineLabelX, onlineLabelY);
+
+            // white box + QR centered
+            var onlineQrBoxSize = qrSize + 24; // 12px white padding around
+            var onlineQrBoxX = blockX + (blockWidth - onlineQrBoxSize) / 2;
+            var onlineQrBoxY = onlineLabelY + 16 + 8; // label height ~16 + gap
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(onlineQrBoxX, onlineQrBoxY, onlineQrBoxSize, onlineQrBoxSize);
+
+            var onlineQrX = onlineQrBoxX + (onlineQrBoxSize - qrSize) / 2;
+            var onlineQrY = onlineQrBoxY + (onlineQrBoxSize - qrSize) / 2;
+            ctx.drawImage(qrCanvasOnline, onlineQrX, onlineQrY, qrSize, qrSize);
+
+            // --- Phone block ---
+            var phoneBlockY = onlineBlockY + onlineBlockHeight + blockGap;
+            var phoneBlockHeight = onlineBlockHeight; // same structure
+            ctx.fillStyle = '#f1e3d4';
+            ctx.fillRect(blockX, phoneBlockY, blockWidth, phoneBlockHeight);
+
+            // label (centered horizontally above QR)
+            ctx.fillStyle = '#555555';
+            ctx.textAlign = 'center';
+            var phoneLabelX = blockX + blockWidth / 2;
+            var phoneLabelY = phoneBlockY + blockPadding;
+            ctx.fillText('QR code contact: Phone', phoneLabelX, phoneLabelY);
+
+            // white box + QR centered
+            var phoneQrBoxSize = qrSize + 24;
+            var phoneQrBoxX = blockX + (blockWidth - phoneQrBoxSize) / 2;
+            var phoneQrBoxY = phoneLabelY + 16 + 8;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(phoneQrBoxX, phoneQrBoxY, phoneQrBoxSize, phoneQrBoxSize);
+
+            var phoneQrX = phoneQrBoxX + (phoneQrBoxSize - qrSize) / 2;
+            var phoneQrY = phoneQrBoxY + (phoneQrBoxSize - qrSize) / 2;
+            ctx.drawImage(qrCanvasPhone, phoneQrX, phoneQrY, qrSize, qrSize);
+        } else {
+            // Fallback: if only one QR exists, center it like before
+            var singleCanvas = qrCanvasPhone || qrCanvasOnline;
+            var singleX = (width - qrSize) / 2;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(singleX - 8, baseY - 8, qrSize + 16, qrSize + 16);
+            ctx.drawImage(singleCanvas, singleX, baseY, qrSize, qrSize);
+        }
 
         return canvas;
     }
@@ -326,6 +402,25 @@
 
         updateCardPreview(data);
         var vcardText = buildVCard(data);
+
+        // Online QR: use stored scan URL when available so it points to the online NameCard page
+        var scanUrl = null;
+        try {
+            if (window.localStorage) {
+                scanUrl = window.localStorage.getItem('namecard_last_scanUrl') || null;
+            }
+        } catch (e) {
+            scanUrl = null;
+        }
+
+        if (scanUrl) {
+            renderOnlineQRCodeText(scanUrl);
+        } else {
+            // Fallback: if we don't have a scan URL yet, use the vCard so the QR is still usable
+            renderOnlineQRCodeText(vcardText);
+        }
+
+        // Phone QR: always use direct vCard text
         renderQRCodeText(vcardText);
 
         downloadBtn.addEventListener('click', function () {

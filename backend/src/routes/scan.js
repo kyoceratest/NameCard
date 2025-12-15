@@ -84,6 +84,31 @@ router.get('/', async (req, res) => {
     .btn-ghost:hover { border-color:#cbb9aa; }
     .hint { margin-top:0.8rem; font-size:0.8rem; color:#8a7a6c; }
   </style>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var shareBtn = document.getElementById('shareButton');
+      if (!shareBtn) return;
+
+      var shareUrl = window.location.href;
+      shareBtn.addEventListener('click', function (event) {
+        event.preventDefault();
+
+        if (navigator.share) {
+          navigator.share({
+            title: 'Digital NameCard',
+            text: 'Here is my digital NameCard',
+            url: shareUrl
+          }).catch(function (err) {
+            // user cancelled or share failed; no alert needed
+            console.warn('Share cancelled or failed:', err);
+          });
+        } else {
+          // Fallback: keep a simple mailto link
+          window.location.href = shareBtn.getAttribute('data-mailto') || shareBtn.href;
+        }
+      });
+    });
+  </script>
 </head>
 <body>
   <main class="page">
@@ -113,7 +138,7 @@ router.get('/', async (req, res) => {
       </div>
       <div class="actions">
         <a class="btn btn-primary" href="/scan/vcard?t=${encodeURIComponent(token)}">Save vCard</a>
-        ${card.email ? `<a class="btn btn-ghost" href="mailto:${esc(card.email)}">Send email</a>` : ''}
+        ${card.email ? `<a class="btn btn-ghost" id="shareButton" href="mailto:${esc(card.email)}" data-mailto="mailto:${esc(card.email)}">Share</a>` : ''}
       </div>
       <p class="hint">Use "Save vCard" to add this contact directly to your phone or email client.</p>
     </section>

@@ -26,7 +26,7 @@
       <h1>Export Name Card</h1>
       <p>This page uses your last saved card from the editor to generate an image with the card on top and the QR code below.</p>
 
-      <div id="exportCardWrapper" style="display: flex; flex-direction: column; align-items: center; gap: 2rem; margin-top: 2rem;">
+      <div id="exportCardWrapper" style="display: flex; flex-direction: column; align-items: center; gap: 30px; margin-top: 2rem;">
         <div id="cardPreview" class="design-card" style="max-width: 560px; width: 100%;">
           <div class="design-text-block">
             <div class="design-header-row">
@@ -54,13 +54,24 @@
           </div>
         </div>
 
-        <button type="button" class="save-button secondary" onclick="window.location.href='index.html'" style="margin-top: 1rem;">
-          Preview / Edit in editor
-        </button>
+        <div style="display:flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
+          <div style="width: 100%; max-width: 560px; background-color: #f1e3d4; padding: 20px; box-sizing: border-box;">
+            <p style="margin: 0 0 10px 0; color: #b7695c; font-size: 15px; text-align: center; font-family: 'Montserrat', sans-serif;">
+              QR code contact: <strong>Online</strong>
+            </p>
+            <div style="background: white; padding: 10px; width: fit-content; margin: 0 auto;">
+              <div id="exportOnlineQr"></div>
+            </div>
+          </div>
 
-        <div class="qr-section" style="max-width: 320px; width: 100%;">
-          <h2>QR Code</h2>
-          <div id="exportQr" class="qr-box"></div>
+          <div style="width: 100%; max-width: 560px; background-color: #f1e3d4; padding: 20px; box-sizing: border-box;">
+            <p style="margin: 0 0 10px 0; color: #b7695c; font-size: 15px; text-align: center; font-family: 'Montserrat', sans-serif;">
+              QR code contact: <strong>Phone</strong>
+            </p>
+            <div style="background: white; padding: 10px; width: fit-content; margin: 0 auto;">
+              <div id="exportQr"></div>
+            </div>
+          </div>
         </div>
       </div>
 

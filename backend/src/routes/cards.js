@@ -67,6 +67,22 @@ router.post('/', async (req, res) => {
 
     const baseScanUrl = process.env.PUBLIC_SCAN_BASE_URL || 'http://localhost:4000/scan';
 
+    // For public (non-tenant) cards, enforce a single card per company.
+    // This does NOT apply when a tenant_id is present (secure business builder).
+    if (!finalTenantId && company && company.trim()) {
+      const dupCheck = await pool.query(
+        'SELECT id FROM cards WHERE tenant_id IS NULL AND company = $1 LIMIT 1',
+        [company.trim()]
+      );
+      if (dupCheck.rowCount > 0) {
+        return res.status(409).json({
+          success: false,
+          code: 'duplicate_public_company',
+          message: 'A public NameCard already exists for this company. Please upgrade to a secure business account to create additional contacts.'
+        });
+      }
+    }
+
     const publicToken = generatePublicToken();
 
     const result = await pool.query(

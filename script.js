@@ -277,40 +277,6 @@
             if (zipCountryInput) zipCountryInput.value = data.zipCountry || '';
 
             if ((!data.street && !data.city && !data.region && !data.zipCountry) && data.address) {
-                var legacyLines = String(data.address).split(/\r?\n/);
-                if (streetInput && legacyLines[0] != null) streetInput.value = legacyLines[0];
-                if (cityInput && legacyLines[1] != null) cityInput.value = legacyLines[1];
-                if (regionInput && legacyLines[2] != null) regionInput.value = legacyLines[2];
-                if (zipCountryInput && legacyLines[3] != null) zipCountryInput.value = legacyLines[3];
-            }
-
-            updatePreview();
-
-            // regenerate QR if required fields are present
-            if (data.firstName && data.lastName && data.mobile) {
-                var vcardText = buildVCard({
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    mobile: data.mobile,
-                    office: data.office,
-                    company: data.company,
-                    position: data.position,
-                    email: data.email,
-                    address: data.address,
-                    street: data.street,
-                    city: data.city,
-                    region: data.region,
-                    zipCountry: data.zipCountry
-                });
-
-                renderQRCode(vcardText);
-            }
-
-            lastSavedPayload = JSON.stringify(data);
-            setAutosaveStatus('Restored last version');
-        } catch (e) {
-            // ignore parse errors
-        }
     }
 
     form.addEventListener('submit', function (e) {
@@ -344,9 +310,6 @@
             return;
         }
 
-        // Public builder: only allow contact/vCard QR (no database-backed mode here)
-        var qrMode = 'contact';
-
         var payload = {
             firstName: firstName,
             lastName: lastName,
@@ -362,8 +325,77 @@
             zipCountry: zipCountryVal
         };
 
-        var vcardText = buildVCard(payload);
-        renderQRCode(vcardText);
+        // Save latest payload for export.html and future restores
+        try {
+            if (window.localStorage) {
+                var serialized = JSON.stringify(payload);
+                window.localStorage.setItem(LOCAL_KEY_LAST, serialized);
+                lastSavedPayload = serialized;
+            }
+        } catch (e) {
+            // ignore storage errors; export will simply not have the latest data
+        }
+
+        // Online-only public builder: create a public card via /api/cards
+        qrContainer.innerHTML = '<p style="font-size:0.9rem; color:#555;">Creating your online card…</p>';
+
+        var requestBody = {
+            first_name: firstName,
+            last_name: lastName,
+            mobile: mobile,
+            office: office,
+            company: company,
+            position: position,
+            email: email,
+            address: address
+        };
+
+        fetch(NAMECARD_API_BASE + '/api/cards', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        }).then(function (res) {
+            if (res.status === 409) {
+                return res.json().then(function (data) {
+                    if (data && data.code === 'duplicate_public_company') {
+                        var msg = 'A public NameCard already exists for this company.\n\nTo create more contacts for the same company, please upgrade to a business account.';
+                        var goUpgrade = window.confirm(msg + '\n\nGo to business login page now?');
+                        if (goUpgrade) {
+                            window.location.href = 'https://namecard-17wq.onrender.com/secure-dashboard';
+                        } else {
+                            qrContainer.innerHTML = '';
+                        }
+                    } else {
+                        alert('Unable to create card for this company. Please try again or contact support.');
+                        qrContainer.innerHTML = '';
+                    }
+                });
+            }
+
+            if (!res.ok) {
+                return res.json().catch(function () { return {}; }).then(function () {
+                    alert('An error occurred while creating the online card. Please try again later.');
+                    qrContainer.innerHTML = '';
+                });
+            }
+
+            return res.json().then(function (data) {
+                if (!data || !data.scanUrl) {
+                    alert('The server did not return a scan URL. Please try again later.');
+                    qrContainer.innerHTML = '';
+                    return;
+                }
+
+                // Generate QR from the online scan URL
+                renderQRCode(data.scanUrl);
+            });
+        }).catch(function (err) {
+            console.error('Error calling /api/cards:', err);
+            alert('Network error while creating the online card. Please check your connection and try again.');
+            qrContainer.innerHTML = '';
+        });
     });
 
     // Inputs: live preview + autosave
